@@ -1,18 +1,24 @@
 source https://www.nuget.org/api/v2
 source https://api.nuget.org/v3/index.json
 storage: none
-nuget FSharp.Core >= 6.0 lowest_matching: true
+
+nuget FSharp.Core >= 8.0 lowest_matching: true
 nuget Microsoft.SourceLink.GitHub copy_local: true
-nuget Expecto
-nuget YoloDev.Expecto.TestSdk
-nuget Microsoft.NET.Test.Sdk
 nuget altcover
+nuget Microsoft.NET.Test.Sdk
+nuget System.Security.Cryptography.ProtectedData
+
+nuget MSTest.TestAdapter
+nuget MSTest.TestFramework
+nuget Unquote
 
 // [ FAKE GROUP ]
 group Build
     storage: none
     source https://www.nuget.org/api/v2
     source https://api.nuget.org/v3/index.json
+    nuget NuGet.Common
+    nuget NuGet.Protocol
     nuget Fake.IO.FileSystem
     nuget Fake.Core.Target
     nuget Fake.Core.ReleaseNotes
@@ -26,10 +32,10 @@ group Build
     nuget Fake.BuildServer.GitHubActions
     nuget Argu
     nuget Octokit
-    nuget Microsoft.Build 17.3.2
-    nuget Microsoft.Build.Framework 17.3.2
-    nuget Microsoft.Build.Tasks.Core 17.3.2
-    nuget Microsoft.Build.Utilities.Core 17.3.2
+    nuget Microsoft.Build 17.12.6
+    nuget Microsoft.Build.Framework 17.12.6
+    nuget Microsoft.Build.Tasks.Core 17.12.6
+    nuget Microsoft.Build.Utilities.Core 17.12.6
 
 group Analyzers
   source https://www.nuget.org/api/v2

@@ -2,7 +2,8 @@
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -16,9 +17,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="paket.references" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Library.fs" />
   </ItemGroup>
 
   <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>
 </Project>

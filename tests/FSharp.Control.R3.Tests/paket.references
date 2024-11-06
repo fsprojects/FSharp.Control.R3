@@ -1,5 +1,6 @@
-Expecto
+altcover
 FSharp.Core
 Microsoft.NET.Test.Sdk
-YoloDev.Expecto.TestSdk
-altcover
+MSTest.TestAdapter
+MSTest.TestFramework
+Unquote
