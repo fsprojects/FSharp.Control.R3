@@ -16,67 +16,67 @@ module Fsdocs =
     /// </summary>
     type BuildCommandParams = {
         /// Input directory of content (default: docs)
-        Input: string option
+        Input : string option
 
         /// Project files to build API docs for outputs, defaults to all packable projects
-        Projects: seq<string> option
+        Projects : seq<string> option
 
         /// Output Directory (default <c>output</c> for <c>build</c> and <c>tmp/watch</c> for <c>watch</c>)
-        Output: string option
+        Output : string option
 
         /// Disable generation of API docs
-        NoApiDocs: bool option
+        NoApiDocs : bool option
 
         /// Evaluate F# fragments in scripts
-        Eval: bool option
+        Eval : bool option
 
         /// Save images referenced in docs
-        SaveImages: bool option
+        SaveImages : bool option
 
         /// Add line numbers
-        LineNumbers: bool option
+        LineNumbers : bool option
 
         /// Additional substitution parameters for templates
-        Parameters: seq<string * string> option
+        Parameters : seq<string * string> option
 
         /// Disable project cracking.
-        IgnoreProjects: bool option
+        IgnoreProjects : bool option
 
         ///  In API doc generation qualify the output by the collection name, e.g. 'reference/FSharp.Core/...' instead of 'reference/...' .
-        Qualify: bool option
+        Qualify : bool option
 
         /// The tool will also generate documentation for non-public members
-        NoPublic: bool option
+        NoPublic : bool option
 
         /// Do not copy default content styles, javascript or use default templates
-        NoDefaultContent: bool option
+        NoDefaultContent : bool option
 
         /// Clean the output directory
-        Clean: bool option
+        Clean : bool option
 
         /// Display version information
-        Version: bool option
+        Version : bool option
 
         /// Provide properties to dotnet msbuild, e.g. <c>--properties Configuration=Release Version=3.4</c>
-        Properties: string option
+        Properties : string option
 
         /// Additional arguments passed down as otherflags to the F# compiler when the API is being generated.
         /// Note that these arguments are trimmed, this is to overcome a limitation in the command line argument
         /// processing. A typical use-case would be to pass an addition assembly reference.
         /// Example <c>--fscoptions " -r:MyAssembly.dll"</c>
-        FscOptions: string option
+        FscOptions : string option
 
         /// Fail if docs are missing or can't be generated
-        Strict: bool option
+        Strict : bool option
 
         /// Source folder at time of component build (<c>&lt;FsDocsSourceFolder&gt;</c>)
-        SourceFolder: string option
+        SourceFolder : string option
 
         /// Source repository for github links (<c>&lt;FsDocsSourceRepository&gt;</c>)
-        SourceRepository: string option
+        SourceRepository : string option
 
         /// Assume comments in F# code are markdown (<c>&lt;UsesMarkdownComments&gt;</c>)
-        MdComments: bool option
+        MdComments : bool option
     } with
 
         /// Parameter default values.
@@ -108,19 +108,19 @@ module Fsdocs =
     /// </summary>
     type WatchCommandParams = {
         /// Do not serve content when watching.
-        NoServer: bool option
+        NoServer : bool option
 
         /// Do not launch a browser window.
-        NoLaunch: bool option
+        NoLaunch : bool option
 
         /// URL extension to launch <c>http://localhost:/%s</c>.
-        Open: string option
+        Open : string option
 
         /// Port to serve content for <c>http://localhost</c> serving.
-        Port: int option
+        Port : int option
 
         /// Build Commands
-        BuildCommandParams: BuildCommandParams option
+        BuildCommandParams : BuildCommandParams option
     } with
 
         /// Parameter default values.
@@ -132,8 +132,8 @@ module Fsdocs =
             BuildCommandParams = None
         }
 
-    let internal buildBuildCommandParams (buildParams: BuildCommandParams) =
-        let buildSubstitutionParameters (subParameters: seq<string * string>) =
+    let internal buildBuildCommandParams (buildParams : BuildCommandParams) =
+        let buildSubstitutionParameters (subParameters : seq<string * string>) =
             let subParameters =
                 subParameters
                 |> Seq.map (fun (key, value) -> (sprintf "%s %s" key value))
@@ -141,24 +141,15 @@ module Fsdocs =
 
             sprintf "--parameters %s" subParameters
 
-        System.Text.StringBuilder()
+        System.Text.StringBuilder ()
         |> StringBuilder.appendIfSome buildParams.Input (sprintf "--input %s")
-        |> StringBuilder.appendIfSome
-            buildParams.Projects
-            (fun projects ->
-                sprintf
-                    "--projects %s"
-                    (projects
-                     |> String.concat " ")
-            )
+        |> StringBuilder.appendIfSome buildParams.Projects (fun projects -> sprintf "--projects %s" (projects |> String.concat " "))
         |> StringBuilder.appendIfSome buildParams.Output (sprintf "--output %s")
         |> StringBuilder.appendIfSome buildParams.NoApiDocs (fun _ -> "--noapidocs")
         |> StringBuilder.appendIfSome buildParams.Eval (fun _ -> "--eval")
         |> StringBuilder.appendIfSome buildParams.SaveImages (fun _ -> "--saveimages")
         |> StringBuilder.appendIfSome buildParams.LineNumbers (fun _ -> "--linenumbers")
-        |> StringBuilder.appendIfSome
-            buildParams.Parameters
-            (fun parameters -> buildSubstitutionParameters parameters)
+        |> StringBuilder.appendIfSome buildParams.Parameters (fun parameters -> buildSubstitutionParameters parameters)
         |> StringBuilder.appendIfSome buildParams.IgnoreProjects (fun _ -> "--ignoreprojects")
         |> StringBuilder.appendIfSome buildParams.Qualify (fun _ -> "--qualify")
         |> StringBuilder.appendIfSome buildParams.NoPublic (fun _ -> "--nonpublic")
@@ -174,8 +165,8 @@ module Fsdocs =
         |> StringBuilder.toText
         |> String.trim
 
-    let internal buildWatchCommandParams (watchParams: WatchCommandParams) =
-        System.Text.StringBuilder()
+    let internal buildWatchCommandParams (watchParams : WatchCommandParams) =
+        System.Text.StringBuilder ()
         |> StringBuilder.appendIfSome watchParams.NoServer (fun _ -> "--noserver")
         |> StringBuilder.appendIfSome watchParams.NoLaunch (fun _ -> "--nolaunch")
         |> StringBuilder.appendIfSome watchParams.Open (sprintf "--open %s")
@@ -185,11 +176,7 @@ module Fsdocs =
         |> String.trim
 
 
-    let cleanCache (workingDirectory) =
-        Shell.cleanDirs [
-            workingDirectory
-            </> ".fsdocs"
-        ]
+    let cleanCache (workingDirectory) = Shell.cleanDirs [ workingDirectory </> ".fsdocs" ]
 
     /// <summary>
     /// Build documentation using <c>fsdocs build</c> command
@@ -210,10 +197,7 @@ module Fsdocs =
         // let dotnetOptions = (fun (buildOptions: DotNet.Options) -> buildOptions)
         let result = DotNet.exec dotnetOptions "fsdocs build" formattedParameters
 
-        if
-            0
-            <> result.ExitCode
-        then
+        if 0 <> result.ExitCode then
             failwithf "fsdocs build failed with exit code '%d'" result.ExitCode
 
     /// <summary>
@@ -235,8 +219,5 @@ module Fsdocs =
         // let dotnetOptions = (fun (buildOptions: DotNet.Options) -> buildOptions)
         let result = DotNet.exec dotnetOptions "fsdocs watch" formattedParameters
 
-        if
-            0
-            <> result.ExitCode
-        then
+        if 0 <> result.ExitCode then
             failwithf "fsdocs watch failed with exit code '%d'" result.ExitCode
