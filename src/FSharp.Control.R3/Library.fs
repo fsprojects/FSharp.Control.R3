@@ -15,18 +15,18 @@ module Say =
 
     /// <summary> A person with many different field types </summary>
     type Person = {
-        Name: string
-        FavoriteNumber: int
-        FavoriteColor: FavoriteColor
-        DateOfBirth: DateTimeOffset
+        Name : string
+        FavoriteNumber : int
+        FavoriteColor : FavoriteColor
+        DateOfBirth : DateTimeOffset
     }
 
     /// <summary>Says hello to a specific person</summary>
-    let helloPerson (person: Person) =
+    let helloPerson (person : Person) =
         sprintf
             "Hello %s. You were born on %s and your favorite number is %d. You like %A."
             person.Name
-            (person.DateOfBirth.ToString("yyyy/MM/dd", Globalization.CultureInfo.InvariantCulture))
+            (person.DateOfBirth.ToString ("yyyy/MM/dd", Globalization.CultureInfo.InvariantCulture))
             person.FavoriteNumber
             person.FavoriteColor
 
@@ -51,6 +51,4 @@ module Say =
 
 
     /// I do nothing
-    let nothing name =
-        name
-        |> ignore
+    let nothing name = name |> ignore

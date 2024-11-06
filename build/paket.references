@@ -1,4 +1,6 @@
+Unquote
 group Build
+Argu
 FSharp.Core
 Fake.IO.FileSystem
 Fake.Core.Target
@@ -11,5 +13,6 @@ Fake.Tools.Git
 Fake.DotNet.Paket
 Fake.Api.GitHub
 Fake.BuildServer.GitHubActions
-Argu
 Octokit
+NuGet.Common
+NuGet.Protocol
