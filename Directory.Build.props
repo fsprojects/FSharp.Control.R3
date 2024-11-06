@@ -1,0 +1,24 @@
+<!--
+This file allows overriding of properties for all projects in the directory.
+See https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory?view=vs-2022#directorybuildprops-and-directorybuildtargets
+ -->
+
+<Project>
+    <PropertyGroup>
+        <PackageTags>f#, fsharp</PackageTags>
+        <PackageProjectUrl>https://github.com/fsprojects/FSharp.Control.R3</PackageProjectUrl>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile> <!--https://docs.microsoft.com/en-gb/nuget/reference/msbuild-targets#packagereadmefile -->
+        <RepositoryType>git</RepositoryType>
+        <Authors>fsprojects</Authors>
+        <RepositoryUrl>https://github.com/fsprojects/FSharp.Control.R3</RepositoryUrl>
+    </PropertyGroup>
+    <PropertyGroup>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/"/>
+        <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="/"/>
+    </ItemGroup>
+</Project>
