@@ -4,7 +4,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Label="NuGet">
     <Title>FSharp.Control.R3</Title>
     <Description>Extensions and wrappers for using R3 with F#</Description>
   </PropertyGroup>

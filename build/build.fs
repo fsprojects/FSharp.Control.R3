@@ -277,16 +277,32 @@ let deleteChangelogBackupFile _ =
     if String.isNotNullOrEmpty Changelog.changelogBackupFilename then
         Shell.rm Changelog.changelogBackupFilename
 
+let getPackageVersionProperty publishToGitHub =
+    if publishToGitHub then
+        let runId = Environment.environVar "GITHUB_RUN_ID"
+        $"/p:PackageVersion=%s{latestEntry.NuGetVersion}-ci-%s{runId}"
+    else
+        $"/p:PackageVersion=%s{latestEntry.NuGetVersion}"
 
 let dotnetBuild ctx =
-    let args = [ sprintf "/p:PackageVersion=%s" latestEntry.NuGetVersion; "--no-restore" ]
+
+    let publishToGitHub = ctx.Context.FinalTarget = "PublishToGitHub"
+
+    let args = [ getPackageVersionProperty publishToGitHub; "--no-restore" ]
 
     DotNet.build
         (fun c -> {
             c with
-                MSBuildParams = disableBinLog c.MSBuildParams
                 Configuration = configuration (ctx.Context.AllExecutingTargets)
                 Common = c.Common |> DotNet.Options.withAdditionalArgs args
+                MSBuildParams = {
+                    (disableBinLog c.MSBuildParams) with
+                        Properties = [
+                            if publishToGitHub then
+                                ("DebugType", "embedded")
+                                ("EmbedAllSources", "true")
+                        ]
+                }
         })
         sln
 
@@ -431,7 +447,10 @@ let dotnetPack ctx =
     // Get release notes with properly-linked version number
     let releaseNotes = Changelog.mkReleaseNotes changelog latestEntry gitHubRepoUrl
 
-    let args = [ $"/p:PackageVersion={latestEntry.NuGetVersion}"; $"/p:PackageReleaseNotes=\"{releaseNotes}\"" ]
+    let args = [
+        getPackageVersionProperty (ctx.Context.FinalTarget = "PublishToGitHub")
+        $"/p:PackageReleaseNotes=\"{releaseNotes}\""
+    ]
 
     DotNet.pack
         (fun c -> {
@@ -447,18 +466,32 @@ let sourceLinkTest _ =
     !!distGlob
     |> Seq.iter (fun nupkg -> dotnet.sourcelink id $"test %s{nupkg}")
 
-let publishToNuget _ =
+type PushSource =
+    | NuGet
+    | GitHub
+
+let publishTo (source : PushSource) _ =
     allPublishChecks ()
 
-    Paket.push (fun c -> {
-        c with
-            ToolType = ToolType.CreateLocalTool ()
-            PublishUrl = publishUrl
-            WorkingDir = "dist"
-            ApiKey =
-                match nugetToken with
-                | Some s -> s
-                | _ -> c.ApiKey // assume paket-config was set properly
+    distGlob
+    |> DotNet.nugetPush (fun o -> {
+        o with
+            Common = {
+                o.Common with
+                    WorkingDirectory = "dist"
+                    CustomParams = Some "--skip-duplicate"
+            }
+            PushParams = {
+                o.PushParams with
+                    Source =
+                        match source with
+                        | NuGet -> None
+                        | GitHub -> Some "github.com"
+                    ApiKey =
+                        match source with
+                        | NuGet -> nugetToken
+                        | GitHub -> githubToken
+            }
     })
 
 let gitRelease _ =
@@ -568,7 +601,8 @@ let initTargets () =
     Target.create "GenerateAssemblyInfo" generateAssemblyInfo
     Target.create "DotnetPack" dotnetPack
     Target.create "SourceLinkTest" sourceLinkTest
-    Target.create "PublishToNuGet" publishToNuget
+    Target.create "PublishToNuGet" (publishTo NuGet)
+    Target.create "PublishToGitHub" (publishTo GitHub)
     Target.create "GitRelease" gitRelease
     Target.create "GitHubRelease" githubRelease
     Target.create "FormatCode" formatCode
@@ -626,6 +660,12 @@ let initTargets () =
     ==> "PublishToNuGet"
     ==> "GitHubRelease"
     ==>! "Publish"
+
+    "DotnetRestore" =?> ("CheckFormatCode", isCI.Value)
+    ==> "DotnetBuild"
+    ==> "DotnetTest"
+    ==> "DotnetPack"
+    ==>! "PublishToGitHub"
 
     "DotnetRestore" ==>! "WatchTests"
 

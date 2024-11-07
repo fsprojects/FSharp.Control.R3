@@ -8,6 +8,10 @@
       "commandName": "Project",
       "commandLineArgs": "--target Publish"
     },
+    "PublishToGitHub": {
+      "commandName": "Project",
+      "commandLineArgs": "--target PublishToGitHub"
+    },
     "BuildDocs": {
       "commandName": "Project",
       "commandLineArgs": "--target BuildDocs"
