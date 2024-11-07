@@ -22,6 +22,7 @@
     <PackageVersion Include="NuGet.Common" Version="6.11.1" />
     <PackageVersion Include="NuGet.Protocol" Version="6.11.1" />
     <PackageVersion Include="Octokit" Version="13.0.1" />
+    <PackageVersion Include="R3" Version="1.2.9" />
     <PackageVersion Include="Unquote" Version="7.0.0" />
   </ItemGroup>
 </Project>
