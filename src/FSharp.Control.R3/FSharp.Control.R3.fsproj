@@ -1,6 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -17,14 +15,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="paket.references" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Observable.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Library.fs" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="R3" />
   </ItemGroup>
-
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
-</Project>
 </Project>

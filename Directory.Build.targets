@@ -12,7 +12,7 @@ See https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-director
   </PropertyGroup>
 
   <!-- Make sure that dotnet tools (including paket) are restored before restoring any project -->
-  <Target Name="ToolRestore" BeforeTargets="Restore;CollectPackageReferences;PaketRestore" Inputs="$(_DotnetToolManifestFile)" Outputs="$(_DotnetToolRestoreOutputFile)">
+  <Target Name="ToolRestore" BeforeTargets="Restore;CollectPackageReferences" Inputs="$(_DotnetToolManifestFile)" Outputs="$(_DotnetToolRestoreOutputFile)">
     <Exec Command="dotnet tool restore" WorkingDirectory="$(MSBuildThisFileDirectory)" StandardOutputImportance="High" StandardErrorImportance="High" />
     <MakeDir Directories="$(_BuildProjBaseIntermediateOutputPath)"/>
     <Touch Files="$(_DotnetToolRestoreOutputFile)" AlwaysCreate="True" ForceTouch="True" />
