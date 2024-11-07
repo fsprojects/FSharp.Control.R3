@@ -250,8 +250,6 @@ let clean _ =
         |> Seq.map (fun sp -> IO.Path.GetDirectoryName p </> sp))
     |> Shell.cleanDirs
 
-    [ "paket-files/paket.restore.cached" ] |> Seq.iter Shell.rm
-
 let dotnetRestore _ =
     [ sln ]
     |> Seq.map (fun dir ->
@@ -289,7 +287,6 @@ let dotnetBuild ctx =
                 MSBuildParams = disableBinLog c.MSBuildParams
                 Configuration = configuration (ctx.Context.AllExecutingTargets)
                 Common = c.Common |> DotNet.Options.withAdditionalArgs args
-
         })
         sln
 
