@@ -447,18 +447,35 @@ let sourceLinkTest _ =
     !!distGlob
     |> Seq.iter (fun nupkg -> dotnet.sourcelink id $"test %s{nupkg}")
 
+type PushSource =
+    | NuGet
+    | GitHub
+
 let publishToNuget _ =
     allPublishChecks ()
 
-    Paket.push (fun c -> {
+    let source =
+#if NuGet
+        NuGet
+#else
+        GitHub
+#endif
+
+    distGlob
+    |> DotNet.nugetPush (fun c -> {
         c with
-            ToolType = ToolType.CreateLocalTool ()
-            PublishUrl = publishUrl
-            WorkingDir = "dist"
-            ApiKey =
-                match nugetToken with
-                | Some s -> s
-                | _ -> c.ApiKey // assume paket-config was set properly
+            Common = { c.Common with WorkingDirectory = "dist" }
+            PushParams = {
+                c.PushParams with
+                    Source =
+                        match source with
+                        | NuGet -> None
+                        | GitHub -> Some "github"
+                    ApiKey =
+                        match source with
+                        | NuGet -> nugetToken
+                        | GitHub -> githubToken
+            }
     })
 
 let gitRelease _ =
