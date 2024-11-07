@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - 2017-03-17
-First release
+## [0.1.0] - 2024-11-18
+First pre-release
 
 ### Added
-- This release already has lots of features
+- Initial implementation of the library
+- `map`, `iter` and `length` functions
 
 [0.1.0]: https://github.com/fsprojects/FSharp.Control.R3/releases/tag/v0.1.0
