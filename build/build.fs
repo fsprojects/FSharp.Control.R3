@@ -27,7 +27,7 @@ let rootDirectory = __SOURCE_DIRECTORY__ </> ".."
 
 let productName = "FSharp.Control.R3"
 
-let sln = rootDirectory </> "FSharp.Control.R3.sln"
+let sln = rootDirectory </> "FSharp.Control.R3.slnf"
 
 let srcCodeGlob =
     !!(rootDirectory </> "src/**/*.fs")
@@ -448,7 +448,7 @@ let dotnetPack ctx =
 
 let sourceLinkTest _ =
     !!distGlob
-    |> Seq.iter (fun nupkg -> dotnet.sourcelink id (sprintf "test %s" nupkg))
+    |> Seq.iter (fun nupkg -> dotnet.sourcelink id $"test %s{nupkg}")
 
 let publishToNuget _ =
     allPublishChecks ()
