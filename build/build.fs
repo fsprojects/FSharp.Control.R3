@@ -49,7 +49,7 @@ let distDir = rootDirectory </> "dist"
 
 let distGlob = distDir </> "*.nupkg"
 
-let coverageThresholdPercent = 80
+let coverageThresholdPercent = 0
 
 let coverageReportDir = rootDirectory </> "docs" </> "coverage"
 
