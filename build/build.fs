@@ -12,13 +12,12 @@ open Argu
 
 let environVarAsBoolOrDefault varName defaultValue =
     let truthyConsts = [ "1"; "Y"; "YES"; "T"; "TRUE" ]
-
-    try
-        let envvar = (Environment.environVar varName).ToUpper ()
-
-        truthyConsts |> List.exists ((=) envvar)
-    with _ ->
-        defaultValue
+    Environment.environVar varName
+    |> ValueOption.ofObj
+    |> ValueOption.map (fun envvar ->
+        truthyConsts
+        |> List.exists (fun ``const`` -> String.Equals (``const``, envvar, StringComparison.InvariantCultureIgnoreCase)))
+    |> ValueOption.defaultValue defaultValue
 
 //-----------------------------------------------------------------------------
 // Metadata and Configuration
