@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Properties\launchSettings.json" />
     <None Include="paket.references" />
   </ItemGroup>
 

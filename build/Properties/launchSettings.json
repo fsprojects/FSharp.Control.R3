@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "BuildAndTest": {
+      "commandName": "Project",
+      "commandLineArgs": "--target DotnetTest"
+    },
+    "Publish": {
+      "commandName": "Project",
+      "commandLineArgs": "--target Publish"
+    },
+    "BuildDocs": {
+      "commandName": "Project",
+      "commandLineArgs": "--target BuildDocs"
+    }
+  }
+}
