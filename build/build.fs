@@ -483,9 +483,11 @@ let publishTo (source : PushSource) _ =
             }
             PushParams = {
                 o.PushParams with
+                    // TODO: Uncomment when migrated to F# 9
+                    //NoSymbols = source.IsGitHub
                     Source =
                         match source with
-                        | NuGet -> None
+                        | NuGet -> Some "nuget.org"
                         | GitHub -> Some "github.com"
                     ApiKey =
                         match source with

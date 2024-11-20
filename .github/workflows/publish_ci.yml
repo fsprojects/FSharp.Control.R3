@@ -23,10 +23,6 @@ jobs:
           global-json-file: global.json
           dotnet-version: |
             8.x
-
-      - name: Add the GitHub source
-        run: dotnet nuget add source --name "github.com" "https://nuget.pkg.github.com/fsprojects/index.json"
-
       - name: Publish to GitHub
         env:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
