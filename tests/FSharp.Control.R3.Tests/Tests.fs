@@ -1,7 +1,8 @@
 namespace FSharp.Control.R3.Tests
 
 open System
-open FSharp.Control
+open System.Threading.Tasks
+open FSharp.Control.R3.Async
 open Microsoft.VisualStudio.TestTools.UnitTesting
 open Swensen.Unquote
 
@@ -9,7 +10,7 @@ open Swensen.Unquote
 type ObservableTests () =
 
     [<TestMethod>]
-    member _.``Test length`` () =
+    member _.``Test length`` () : Task =
 
         async {
             use r3Bus = new R3.Subject<int> ()
@@ -27,4 +28,5 @@ type ObservableTests () =
             Assert.AreEqual<int> (0, res)
 
         }
-        |> Async.RunSynchronously
+        |> Async.StartImmediateAsTask
+        :> Task
