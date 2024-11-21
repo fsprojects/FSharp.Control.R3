@@ -16,7 +16,7 @@ R3 is a similar wrapper for [R3](https://github.com/Cysharp/R3), a re-implementa
   <div class="span1"></div>
   <div class="span6">
     <div class="well well-small" id="nuget">
-      The FSharp.Control.RR3 library can be <a href="https://nuget.org/packages/FSharp.Control.R3">installed from NuGet</a>:
+      The FSharp.Control.R3 library can be <a href="https://nuget.org/packages/FSharp.Control.R3">installed from NuGet</a>:
       <pre>PM> Install-Package FSharp.Control.R3</pre>
     </div>
   </div>
