@@ -14,10 +14,10 @@ If Nullable is just "a list of 0 or 1", then async-await could be just an IObser
 
 There are many advantages of using reactive programming and Rx:
 
- - Manual thread/lock -handling can be avoided
- - No temporary class variables to capture the current or some previous state 
- - Testing is easy: generate lists like they would be event-lists. 
- - Testing the wrong async event order is easy. 
- - Also, testing long-duration workflows is easy as you can "fake" time passing
+- Manual thread/lock -handling can be avoided
+- No temporary class variables to capture the current or some previous state 
+- Testing is easy: generate lists like they would be event-lists. 
+- Testing the wrong async event order is easy. 
+- Also, testing long-duration workflows is easy as you can "fake" time passing
 
 It's always good to have alternatives, and if R3 is your alternative to Rx, then `FSharp.Control.R3` is your F# wrapper, like `FSharp.Control.Reactive` F#.
