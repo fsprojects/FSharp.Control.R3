@@ -20,4 +20,4 @@ There are many advantages of using reactive programming and Rx:
 - Testing the wrong async event order is easy. 
 - Also, testing long-duration workflows is easy as you can "fake" time passing
 
-It's always good to have alternatives, and if R3 is your alternative to Rx, then `FSharp.Control.R3` is your F# wrapper, like `FSharp.Control.Reactive` F#.
+It's always good to have alternatives, and if R3 is your alternative to Rx, then `FSharp.Control.R3` is your F# wrapper, like `FSharp.Control.Reactive` for F#.
