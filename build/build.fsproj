@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Helpers.fs" />
     <Compile Include="Changelog.fs" />
     <Compile Include="FsDocs.fs" />
     <Compile Include="build.fs" />
