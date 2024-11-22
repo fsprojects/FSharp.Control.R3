@@ -573,8 +573,16 @@ let watchDocs ctx =
     DocsTool.watch (string configuration)
 
 
-let initTargets () =
+let initTargets (ctx : Context.FakeExecutionContext) =
     BuildServer.install [ GitHubActions.Installer ]
+
+    let isPublishToGitHub =
+        ctx.Arguments
+        |> Seq.pairwise
+        |> Seq.exists (fun (arg, value) ->
+            (String.Equals (arg, "-t", StringComparison.OrdinalIgnoreCase)
+             || String.Equals (arg, "--target", StringComparison.OrdinalIgnoreCase))
+            && String.Equals (value, "PublishToGitHub", StringComparison.OrdinalIgnoreCase))
 
     /// Defines a dependency - y is dependent on x. Finishes the chain.
     let (==>!) x y = x ==> y |> ignore
@@ -651,7 +659,7 @@ let initTargets () =
     ==>! "ShowCoverageReport"
 
     "UpdateChangelog"
-    ==> "GenerateAssemblyInfo"
+    =?> ("GenerateAssemblyInfo", not isPublishToGitHub)
     ==> "GitRelease"
     ==>! "Release"
 
@@ -664,8 +672,9 @@ let initTargets () =
     ==> "GitHubRelease"
     ==>! "Publish"
 
-    "DotnetRestore" =?> ("CheckFormatCode", isCI.Value)
-    ==> "GenerateAssemblyInfo"
+    "DotnetRestore"
+    =?> ("CheckFormatCode", isCI.Value)
+    =?> ("GenerateAssemblyInfo", isPublishToGitHub)
     ==> "DotnetBuild"
     ==> "DotnetTest"
     ==> "DotnetPack"
@@ -678,13 +687,14 @@ let initTargets () =
 //-----------------------------------------------------------------------------
 [<EntryPoint>]
 let main argv =
-    argv
-    |> Array.toList
-    |> Context.FakeExecutionContext.Create false "build.fsx"
-    |> Context.RuntimeContext.Fake
-    |> Context.setExecutionContext
 
-    initTargets ()
+    let ctx =
+        argv
+        |> Array.toList
+        |> Context.FakeExecutionContext.Create false "build.fsx"
+
+    Context.setExecutionContext (Context.RuntimeContext.Fake ctx)
+    initTargets ctx
     Target.runOrDefaultWithArguments "DotnetPack"
 
     0 // return an integer exit code
