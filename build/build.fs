@@ -9,7 +9,15 @@ open Fake.Core.TargetOperators
 open Fake.Api
 open Fake.BuildServer
 open Argu
-open Helpers
+
+let environVarAsBoolOrDefault varName defaultValue =
+    let truthyConsts = [ "1"; "Y"; "YES"; "T"; "TRUE" ]
+    Environment.environVar varName
+    |> ValueOption.ofObj
+    |> ValueOption.map (fun envvar ->
+        truthyConsts
+        |> List.exists (fun ``const`` -> String.Equals (``const``, envvar, StringComparison.InvariantCultureIgnoreCase)))
+    |> ValueOption.defaultValue defaultValue
 
 //-----------------------------------------------------------------------------
 // Metadata and Configuration
@@ -61,6 +69,7 @@ let gitHubRepoUrl = $"https://github.com/%s{gitOwner}/%s{gitRepoName}"
 
 let documentationRootUrl = $"https://%s{gitOwner}.github.io/%s{gitRepoName}"
 
+let releaseBranch = "main"
 let readme = "README.md"
 let changelogFile = "CHANGELOG.md"
 
@@ -86,6 +95,53 @@ let enableCodeCoverage = environVarAsBoolOrDefault "ENABLE_COVERAGE" false
 let githubToken = Environment.environVarOrNone "GITHUB_TOKEN"
 
 let nugetToken = Environment.environVarOrNone "NUGET_TOKEN"
+
+//-----------------------------------------------------------------------------
+// Helpers
+//-----------------------------------------------------------------------------
+
+
+let isRelease (targets : Target list) =
+    targets
+    |> Seq.map (fun t -> t.Name)
+    |> Seq.exists ((=) "PublishToNuGet")
+
+let invokeAsync f = async { f () }
+
+let configuration (targets : Target list) =
+    let defaultVal = if isRelease targets then "Release" else "Debug"
+
+    match Environment.environVarOrDefault "CONFIGURATION" defaultVal with
+    | "Debug" -> DotNet.BuildConfiguration.Debug
+    | "Release" -> DotNet.BuildConfiguration.Release
+    | config -> DotNet.BuildConfiguration.Custom config
+
+let failOnBadExitAndPrint (p : ProcessResult) =
+    if p.ExitCode <> 0 then
+        p.Errors |> Seq.iter Trace.traceError
+
+        failwithf "failed with exitcode %d" p.ExitCode
+
+
+let isCI = lazy environVarAsBoolOrDefault "CI" false
+
+// CI Servers can have bizarre failures that have nothing to do with your code
+let rec retryIfInCI times fn =
+    match isCI.Value with
+    | true ->
+        if times > 1 then
+            try
+                fn ()
+            with _ ->
+                retryIfInCI (times - 1) fn
+        else
+            fn ()
+    | _ -> fn ()
+
+let failOnWrongBranch () =
+    if Git.Information.getBranchName "" <> releaseBranch then
+        failwithf "Not on %s.  If you want to release please switch to this branch." releaseBranch
+
 
 module dotnet =
     let watch cmdParam program args = DotNet.exec cmdParam (sprintf "watch %s" program) args

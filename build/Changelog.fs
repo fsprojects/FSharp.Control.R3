@@ -3,7 +3,6 @@ module Changelog
 open System
 open Fake.Core
 open Fake.IO
-open Helpers
 
 let isEmptyChange =
     function
@@ -63,9 +62,10 @@ let mkReleaseNotes changelog (latestEntry : Changelog.ChangelogEntry) gitHubRepo
         { latestEntry with Description = Some description }.ToString ()
 
 let getVersionNumber envVarName ctx =
+    let args = ctx.Context.Arguments
 
     let verArg =
-        ctx.Context.Arguments
+        args
         |> List.tryHead
         |> Option.defaultWith (fun () -> Environment.environVarOrDefault envVarName "")
 
@@ -100,24 +100,21 @@ let mutable changelogBackupFilename = ""
 
 let updateChangelog changelogPath (changelog : Fake.Core.Changelog.Changelog) gitHubRepoUrl ctx =
 
-    let newVersion =
-        if isPublishToGitHub ctx then
-            changelog.LatestEntry.SemVer
-        else
-            ctx |> getVersionNumber "RELEASE_VERSION" |> SemVer.parse
-
+    let verStr = ctx |> getVersionNumber "RELEASE_VERSION"
 
     let description, unreleasedChanges =
         match changelog.Unreleased with
         | None -> None, []
         | Some u -> u.Description, u.Changes
 
+    let newVersion = SemVer.parse verStr
+
     changelog.Entries
     |> List.tryFind (fun entry -> entry.SemVer = newVersion)
     |> Option.iter (fun entry ->
         Trace.traceErrorfn
             "Version %s already exists in %s, released on %s"
-            newVersion.AsString
+            verStr
             changelogPath
             (if entry.Date.IsSome then
                  entry.Date.Value.ToString ("yyyy-MM-dd")
@@ -131,7 +128,7 @@ let updateChangelog changelogPath (changelog : Fake.Core.Changelog.Changelog) gi
     |> Option.iter (fun entry ->
         Trace.traceErrorfn
             "You're trying to release version %s, but a later version %s already exists, released on %s"
-            newVersion.AsString
+            verStr
             entry.SemVer.AsString
             (if entry.Date.IsSome then
                  entry.Date.Value.ToString ("yyyy-MM-dd")
