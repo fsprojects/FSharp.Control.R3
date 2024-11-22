@@ -4,20 +4,20 @@ open System.Reflection
 
 [<assembly: AssemblyTitleAttribute("FSharp.Control.R3")>]
 [<assembly: AssemblyProductAttribute("FSharp.Control.R3")>]
-[<assembly: AssemblyVersionAttribute("0.1.0")>]
-[<assembly: AssemblyMetadataAttribute("ReleaseDate","2024-11-18T00:00:00.0000000")>]
-[<assembly: AssemblyFileVersionAttribute("0.1.0")>]
-[<assembly: AssemblyInformationalVersionAttribute("0.1.0")>]
+[<assembly: AssemblyVersionAttribute("0.2.0")>]
+[<assembly: AssemblyMetadataAttribute("ReleaseDate","2024-11-23T00:00:00.0000000+04:00")>]
+[<assembly: AssemblyFileVersionAttribute("0.2.0")>]
+[<assembly: AssemblyInformationalVersionAttribute("0.2.0")>]
 [<assembly: AssemblyMetadataAttribute("ReleaseChannel","release")>]
-[<assembly: AssemblyMetadataAttribute("GitHash","7accd8a9a4e8434e48b501db88ddac111f40e1a5")>]
+[<assembly: AssemblyMetadataAttribute("GitHash","bcf4b5e21f0d02a259aa197ef45aeb98b4efee2f")>]
 do ()
 
 module internal AssemblyVersionInformation =
     let [<Literal>] AssemblyTitle = "FSharp.Control.R3"
     let [<Literal>] AssemblyProduct = "FSharp.Control.R3"
-    let [<Literal>] AssemblyVersion = "0.1.0"
-    let [<Literal>] AssemblyMetadata_ReleaseDate = "2024-11-18T00:00:00.0000000"
-    let [<Literal>] AssemblyFileVersion = "0.1.0"
-    let [<Literal>] AssemblyInformationalVersion = "0.1.0"
+    let [<Literal>] AssemblyVersion = "0.2.0"
+    let [<Literal>] AssemblyMetadata_ReleaseDate = "2024-11-23T00:00:00.0000000+04:00"
+    let [<Literal>] AssemblyFileVersion = "0.2.0"
+    let [<Literal>] AssemblyInformationalVersion = "0.2.0"
     let [<Literal>] AssemblyMetadata_ReleaseChannel = "release"
-    let [<Literal>] AssemblyMetadata_GitHash = "7accd8a9a4e8434e48b501db88ddac111f40e1a5"
+    let [<Literal>] AssemblyMetadata_GitHash = "bcf4b5e21f0d02a259aa197ef45aeb98b4efee2f"
