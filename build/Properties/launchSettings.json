@@ -15,6 +15,10 @@
     "BuildDocs": {
       "commandName": "Project",
       "commandLineArgs": "--target BuildDocs"
+    },
+    "Release": {
+      "commandName": "Project",
+      "commandLineArgs": "--target Release 0.2.0"
     }
   }
 }

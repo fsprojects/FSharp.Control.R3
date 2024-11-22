@@ -14,7 +14,7 @@ let isEmptyChange =
     | Changelog.Change.Security s
     | Changelog.Change.Custom (_, s) -> String.IsNullOrWhiteSpace s.CleanedText
 
-let tagFromVersionNumber versionNumber = sprintf "v%s" versionNumber
+let tagFromVersionNumber versionNumber = sprintf "releases/%s" versionNumber
 
 let failOnEmptyChangelog (latestEntry : Changelog.ChangelogEntry) =
     let isEmpty =
@@ -27,7 +27,7 @@ let failOnEmptyChangelog (latestEntry : Changelog.ChangelogEntry) =
 let mkLinkReference (newVersion : SemVerInfo) (changelog : Changelog.Changelog) (gitHubRepoUrl : string) =
     if changelog.Entries |> List.isEmpty then
         // No actual changelog entries yet: link reference will just point to the Git tag
-        sprintf "[%s]: %s/releases/tag/%s" newVersion.AsString (gitHubRepoUrl.TrimEnd ('/')) (tagFromVersionNumber newVersion.AsString)
+        sprintf "[%s]: %s/releases/tag/%s" newVersion.AsString gitHubRepoUrl (tagFromVersionNumber newVersion.AsString)
     else
         let versionTuple version = (version.Major, version.Minor, version.Patch)
         // Changelog entries come already sorted, most-recent first, by the Changelog module

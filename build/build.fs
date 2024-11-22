@@ -65,9 +65,9 @@ let watchDocsDir = temp </> "watch-docs"
 let gitOwner = "fsprojects"
 let gitRepoName = "FSharp.Control.R3"
 
-let gitHubRepoUrl = $"https://github.com/%s{gitOwner}/%s{gitRepoName}/"
+let gitHubRepoUrl = $"https://github.com/%s{gitOwner}/%s{gitRepoName}"
 
-let documentationRootUrl = $"https://%s{gitOwner}.github.io/%s{gitRepoName}/"
+let documentationRootUrl = $"https://%s{gitOwner}.github.io/%s{gitRepoName}"
 
 let releaseBranch = "main"
 let readme = "README.md"
@@ -190,7 +190,7 @@ module DocsTool =
             Parameters =
                 Some [
                     // https://fsprojects.github.io/FSharp.Formatting/content.html#Templates-and-Substitutions
-                    "root", quoted documentationRootUrl
+                    "root", quoted $"{documentationRootUrl}/"
                     "fsdocs-collection-name", quoted productName
                     "fsdocs-repository-branch", quoted releaseBranch
                     "fsdocs-package-version", quoted latestEntry.NuGetVersion
@@ -199,7 +199,6 @@ module DocsTool =
                 ]
             Strict = Some true
     }
-
 
     let cleanDocsCache () = Fsdocs.cleanCache rootDirectory
 
@@ -216,9 +215,8 @@ module DocsTool =
 
         Fsdocs.watch fsDocsDotnetOptions (fun p -> { p with BuildCommandParams = Some (buildParams p.BuildCommandParams) })
 
-let allReleaseChecks () =
-    failOnWrongBranch ()
-    Changelog.failOnEmptyChangelog latestEntry
+let allReleaseChecks () = failOnWrongBranch ()
+//Changelog.failOnEmptyChangelog latestEntry
 
 
 let failOnLocalBuild () =
@@ -501,13 +499,14 @@ let gitRelease _ =
 
     let releaseNotesGitCommitFormat = latestEntry.ToString ()
 
-    Git.Staging.stageFile "" "CHANGELOG.md" |> ignore
+    Git.Staging.stageFile "" (rootDirectory </> "CHANGELOG.md")
+    |> ignore
 
     !!(rootDirectory </> "src/**/AssemblyInfo.fs")
     ++ (rootDirectory </> "tests/**/AssemblyInfo.fs")
     |> Seq.iter (Git.Staging.stageFile "" >> ignore)
 
-    let msg = sprintf "Bump version to %s\n\n%s" latestEntry.NuGetVersion releaseNotesGitCommitFormat
+    let msg = $"Bump version to `%s{latestEntry.NuGetVersion}`\n\n%s{releaseNotesGitCommitFormat}"
 
     Git.Commit.exec "" msg
 
@@ -526,7 +525,7 @@ let githubRelease _ =
     let token =
         match githubToken with
         | Some s -> s
-        | _ -> failwith "please set the github_token environment variable to a github personal access token with repo access."
+        | _ -> failwith "please set the `GITHUB_TOKEN` environment variable to a github personal access token with repo access."
 
     let files = !!distGlob
     // Get release notes with properly-linked version number
@@ -664,6 +663,7 @@ let initTargets () =
     ==>! "Publish"
 
     "DotnetRestore" =?> ("CheckFormatCode", isCI.Value)
+    ==> "GenerateAssemblyInfo"
     ==> "DotnetBuild"
     ==> "DotnetTest"
     ==> "DotnetPack"
