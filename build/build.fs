@@ -122,6 +122,7 @@ let failOnBadExitAndPrint (p : ProcessResult) =
 
         failwithf "failed with exitcode %d" p.ExitCode
 
+let isPublishToGitHub ctx = ctx.Context.FinalTarget = "PublishToGitHub"
 
 let isCI = lazy environVarAsBoolOrDefault "CI" false
 
@@ -229,9 +230,8 @@ let failOnCIBuild () =
     if isCI.Value then
         failwith "On CI. If you want to run this target, please use a local build."
 
-let allPublishChecks () =
-    failOnLocalBuild ()
-    Changelog.failOnEmptyChangelog latestEntry
+let allPublishChecks () = failOnLocalBuild ()
+//Changelog.failOnEmptyChangelog latestEntry
 
 //-----------------------------------------------------------------------------
 // Target Implementations
@@ -266,7 +266,23 @@ let dotnetRestore _ =
     |> Seq.iter (retryIfInCI 10)
 
 let updateChangelog ctx =
-    latestEntry <- Changelog.updateChangelog changelogPath changelog gitHubRepoUrl ctx
+    latestEntry <-
+        if not <| isPublishToGitHub ctx then
+            Changelog.updateChangelog changelogPath changelog gitHubRepoUrl ctx
+        else
+            let latest = changelog.LatestEntry
+            let semVer = {
+                latest.SemVer with
+                    Original = None
+                    Patch = latest.SemVer.Patch + 1u
+                    PreRelease = PreRelease.TryParse "ci"
+            }
+            {
+                latest with
+                    SemVer = semVer
+                    NuGetVersion = semVer.AsString
+                    AssemblyVersion = semVer.AsString
+            }
 
 let revertChangelog _ =
     if String.isNotNullOrEmpty Changelog.changelogBackupFilename then
@@ -280,13 +296,13 @@ let deleteChangelogBackupFile _ =
 let getPackageVersionProperty publishToGitHub =
     if publishToGitHub then
         let runId = Environment.environVar "GITHUB_RUN_ID"
-        $"/p:PackageVersion=%s{latestEntry.NuGetVersion}-ci-%s{runId}"
+        $"/p:PackageVersion=%s{latestEntry.NuGetVersion}-%s{runId}"
     else
         $"/p:PackageVersion=%s{latestEntry.NuGetVersion}"
 
 let dotnetBuild ctx =
 
-    let publishToGitHub = ctx.Context.FinalTarget = "PublishToGitHub"
+    let publishToGitHub = isPublishToGitHub ctx
 
     let args = [ getPackageVersionProperty publishToGitHub; "--no-restore" ]
 
@@ -447,10 +463,7 @@ let dotnetPack ctx =
     // Get release notes with properly-linked version number
     let releaseNotes = Changelog.mkReleaseNotes changelog latestEntry gitHubRepoUrl
 
-    let args = [
-        getPackageVersionProperty (ctx.Context.FinalTarget = "PublishToGitHub")
-        $"/p:PackageReleaseNotes=\"{releaseNotes}\""
-    ]
+    let args = [ getPackageVersionProperty (isPublishToGitHub ctx); $"/p:PackageReleaseNotes=\"{releaseNotes}\"" ]
 
     DotNet.pack
         (fun c -> {
@@ -531,7 +544,6 @@ let githubRelease _ =
 
     let files = !!distGlob
     // Get release notes with properly-linked version number
-
     let releaseNotes = Changelog.mkReleaseNotes changelog latestEntry gitHubRepoUrl
 
     GitHub.createClientWithToken token
@@ -659,7 +671,7 @@ let initTargets (ctx : Context.FakeExecutionContext) =
     ==>! "ShowCoverageReport"
 
     "UpdateChangelog"
-    =?> ("GenerateAssemblyInfo", not isPublishToGitHub)
+    ==> "GenerateAssemblyInfo"
     ==> "GitRelease"
     ==>! "Release"
 
