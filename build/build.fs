@@ -196,6 +196,7 @@ module DocsTool =
                     "fsdocs-package-version", quoted latestEntry.NuGetVersion
                     "fsdocs-readme-link", quoted (READMElink.ToString ())
                     "fsdocs-release-notes-link", quoted (CHANGELOGlink.ToString ())
+                    "fsdocs-logo-src", quoted ("https://raw.githubusercontent.com/fsprojects/FSharp.Control.R3/refs/heads/main/docsSrc/content/icon.png")
                 ]
             Strict = Some true
     }

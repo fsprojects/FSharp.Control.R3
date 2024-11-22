@@ -7,6 +7,7 @@
   <PropertyGroup Label="NuGet">
     <Title>FSharp.Control.R3</Title>
     <Description>Extensions and wrappers for using R3 with F#</Description>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -20,6 +21,13 @@
     <Compile Include="Observable.fs" />
     <Compile Include="AsyncObservable.fs" />
     <Compile Include="TaskObservable.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\docsSrc\content\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
