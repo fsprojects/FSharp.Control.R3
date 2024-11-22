@@ -5,7 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Tests.fs" />
+    <Compile Include="BuilderTests.fs" />
+    <Compile Include="ObservableTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
