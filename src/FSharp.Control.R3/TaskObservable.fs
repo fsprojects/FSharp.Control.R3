@@ -31,18 +31,3 @@ module Observable =
         |> mapAsync options action
         |> length cancellationToken
         :> Task
-
-    /// Applies an accumulator function over an observable sequence, returning the
-    /// result of the aggregation as a single element in the result sequence
-    let inline aggregateAsync cancellationToken seed (f : 'r -> 't -> 'r) source =
-        ObservableExtensions.AggregateAsync (source, seed, f, cancellationToken)
-
-    /// Determines whether all elements of an observable satisfy a predicate
-    let inline allAsync cancellationToken (f : 't -> bool) source = ObservableExtensions.AllAsync (source, f, cancellationToken)
-
-    /// Determines whether an observable sequence contains a specified value
-    /// which satisfies the given predicate
-    let inline existsAsync source = ObservableExtensions.AnyAsync source
-
-    /// Returns the first element of an observable sequence
-    let inline firstAsync source = ObservableExtensions.FirstAsync source

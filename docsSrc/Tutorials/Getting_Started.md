@@ -48,10 +48,9 @@ Then you do:
     [lang=bash]
     paket install FSharp.Control.R3
 
-Now you have available functions like:
+Now you can use functions closer to the traditional F#-style, like:
 
 ```fsharp
-open FSharp.Control.R3.Async
-
-Observable.length r3Bus
+// Filter events
+let interesting = r3Bus |> FSharp.Control.R3.Observable.filter (fun x -> x % 2 = 0)
 ```
