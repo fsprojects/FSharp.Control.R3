@@ -18,6 +18,9 @@ let inline concat source = ObservableExtensions.Concat source
 /// Returns an observable sequence that only contains distinct elements
 let inline distinct source = ObservableExtensions.Distinct source
 
+/// Returns an observable sequence that contains no elements
+let inline empty () = Observable.Empty ()
+
 /// Filters the observable elements of a sequence based on a predicate
 let inline filter ([<InlineIfLambda>] f : 't -> bool) source = ObservableExtensions.Where (source, f)
 
@@ -28,6 +31,10 @@ let inline map ([<InlineIfLambda>] f : 't -> 'r) source = ObservableExtensions.S
 let inline mapi ([<InlineIfLambda>] f : int -> 't -> 'r) source = ObservableExtensions.Select (source, (fun i x -> f x i))
 
 /// Bypasses a specified number of elements in an observable sequence and then returns the remaining elements.
+/// Returns an observable sequence that contains only a single element
+let inline singleton item = Observable.Return<'T> item
+
+/// Bypasses a specified number of elements in an observable sequence and then returns the remaining elements
 let inline skip (count : int) (source) = ObservableExtensions.Skip (source, count)
 
 /// Takes n elements (from the beginning of an observable sequence?)
@@ -36,8 +43,20 @@ let inline take (count : int) (source) = ObservableExtensions.Take (source, coun
 /// Filters the observable elements of a sequence based on a predicate
 let inline where ([<InlineIfLambda>] f : 't -> bool) source = ObservableExtensions.Where (source, f)
 
+open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
+
+[<AutoOpen>]
+module Extensions =
+
+    [<AbstractClass; Sealed; Extension>]
+    type Observable private () =
+
+        static member ofSeq (items : _ seq, [<Optional>] cancellationToken) = Observable.ToObservable (items, cancellationToken)
+
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Builders =
+
     open System
 
     /// A reactive query builder.
