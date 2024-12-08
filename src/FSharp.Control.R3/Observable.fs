@@ -89,7 +89,7 @@ module OptionExtensions =
         /// a sequence comprised of the results "x" for each element where
         /// the function returns Some(x)
         [<Extension>]
-        static member choose f o = o |> map f |> where Option.isSome |> map Option.get
+        static member choose f = map f >> where Option.isSome >> map Option.get
 
 [<AutoOpen>]
 module ValueOptionExtensions =
@@ -101,11 +101,7 @@ module ValueOptionExtensions =
         /// a sequence comprised of the results "x" for each element where
         /// the function returns ValueSome(x)
         [<Extension>]
-        static member choose f o =
-            o
-            |> map f
-            |> where ValueOption.isSome
-            |> map ValueOption.get
+        static member choose f = map f >> where ValueOption.isSome >> map ValueOption.get
 
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]

@@ -5,6 +5,7 @@ open System.Threading
 open System.Threading.Tasks
 open FSharp.Control.R3
 
+/// <remarks>Caution! All functions returning <see cref="Async`1"/> are blocking and may never return if awaited</remarks>
 module Observable =
 
     /// Applies an accumulator function over an observable sequence, returning the
@@ -79,7 +80,7 @@ module Observable =
     /// Creates observable sequence from a single element returned by asynchronous computation
     let ofAsync (computation : Async<'T>) =
         Observable.FromAsync (fun ct ->
-            Async.StartAsTask (computation, cancellationToken = ct)
+            Async.StartImmediateAsTask (computation, cancellationToken = ct)
             |> ValueTask<'T>)
 
     let inline toArray source = async {
