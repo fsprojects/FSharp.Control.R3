@@ -5,6 +5,7 @@ open System.Threading
 open System.Threading.Tasks
 open FSharp.Control.R3
 
+/// <remarks>Caution! All functions returning <see cref="Task"/>/<see cref="Task`1"/> are blocking and may never return if awaited</remarks>
 module Observable =
 
     /// Applies an accumulator function over an observable sequence, returning the
