@@ -1,5 +1,8 @@
 namespace FSharp.Control.R3
 
+open System
+open System.Threading
+open System.Threading.Tasks
 open R3
 
 type AwaitOperationConfiguration =
@@ -58,3 +61,26 @@ type ProcessingOptions = {
         | AwaitOperationConfiguration.Parallel _ -> AwaitOperation.Parallel
         | AwaitOperationConfiguration.SequentialParallel _ -> AwaitOperation.SequentialParallel
         | AwaitOperationConfiguration.ThrottleFirstLast -> AwaitOperation.ThrottleFirstLast
+
+type ChunkConfiguration<'T> =
+    | ChunkCount of WindowLength : int
+    | ChunkTimeSpan of WindowTime : TimeSpan * TimeProvider : TimeProvider
+    | ChunkTimeSpanCount of WindowTime : TimeSpan * WindowLength : int * TimeProvider : TimeProvider
+    | ChunkMilliseconds of WindowTime : int * TimeProvider : TimeProvider
+    | ChunkMillisecondsCount of WindowTime : int * WindowLength : int * TimeProvider : TimeProvider
+    | ChunkAsyncWindow of AsyncWindow : Func<'T, CancellationToken, ValueTask> * ConfigureAwait : bool
+    | ChunkWindowBoundaries of WindowBoundaries : Observable<'T>
+
+[<AutoOpen>]
+module ChunkConfiguration =
+    let inline TimeSpan windowTime = ChunkTimeSpan (windowTime, ObservableSystem.DefaultTimeProvider)
+    let inline TimeSpanCount windowTime windowLength =
+        ChunkTimeSpanCount (windowTime, windowLength, ObservableSystem.DefaultTimeProvider)
+    let inline Milliseconds windowTime = ChunkMilliseconds (windowTime, ObservableSystem.DefaultTimeProvider)
+    let inline MillisecondsCount windowTime windowLength =
+        ChunkMillisecondsCount (windowTime, windowLength, ObservableSystem.DefaultTimeProvider)
+    let AsyncWindow (asyncWindow : 'T -> Async<unit>) =
+        let asyncWindow element ct =
+            Async.StartImmediateAsTask (asyncWindow element, ct) :> Task
+            |> ValueTask
+        ChunkAsyncWindow (asyncWindow, true)

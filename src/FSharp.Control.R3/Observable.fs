@@ -1,5 +1,6 @@
 module FSharp.Control.R3.Observable
 
+open System
 open R3
 
 /// Hides the identy of an observable sequence
@@ -11,12 +12,37 @@ let inline bind ([<InlineIfLambda>] f : 'T -> Observable<'TNext>) source = Obser
 /// Converts the elements of the sequence to the specified type
 let inline cast<'T, 'CastType> (source) = ObservableExtensions.Cast<'T, 'CastType> (source)
 
+let inline catch ([<InlineIfLambda>] f : 'Exn -> Observable<'TNext>) o = ObservableExtensions.Catch (o, f)
+
 /// Concatenates the second observable sequence to the first observable sequence
 /// upn the successful termination of the first
-let inline concat source = ObservableExtensions.Concat source
+let inline concat first second = ObservableExtensions.Concat (first, second)
+
+///<summary>Divides the input observable sequence into chunks of size at most <c>chunkSize</c>.</summary>
+///<param name="chunkSize">The maximum size of each chunk.</param>
+///<param name="source">The input observable sequence.</param>
+///<returns>The observable sequence divided into chunks.</returns>
+///<exception cref="T:System.ArgumentNullException">Thrown when the input sequence is null.</exception>
+///<exception cref="T:System.ArgumentException">Thrown when <c>chunkSize</c> is not positive.</exception>
+let inline chunkBySize (chunkSize : int) (source) = ObservableExtensions.Chunk (source, chunkSize)
+
+let inline chunkBy (configuration : ChunkConfiguration<'T>) (source) =
+    match configuration with
+    | ChunkCount count -> ObservableExtensions.Chunk (source, count)
+    | ChunkTimeSpan (timeSpan, timeProvider) -> ObservableExtensions.Chunk (source, timeSpan, timeProvider)
+    | ChunkTimeSpanCount (timeSpan, count, timeProvider) -> ObservableExtensions.Chunk (source, timeSpan, count, timeProvider)
+    | ChunkMilliseconds (milliseconds, timeProvider) ->
+        ObservableExtensions.Chunk (source, TimeSpan.FromMilliseconds (float milliseconds), timeProvider)
+    | ChunkMillisecondsCount (milliseconds, count, timeProvider) ->
+        ObservableExtensions.Chunk (source, TimeSpan.FromMilliseconds (float milliseconds), count, timeProvider)
+    | ChunkAsyncWindow (asyncWindow, configureAwait) -> ObservableExtensions.Chunk (source, asyncWindow, configureAwait)
+    | ChunkWindowBoundaries windowBoundaries -> ObservableExtensions.Chunk (source, windowBoundaries = windowBoundaries)
 
 /// Returns an observable sequence that only contains distinct elements
 let inline distinct source = ObservableExtensions.Distinct source
+
+/// Returns an observable sequence that contains no elements
+let inline empty () = Observable.Empty ()
 
 /// Filters the observable elements of a sequence based on a predicate
 let inline filter ([<InlineIfLambda>] f : 't -> bool) source = ObservableExtensions.Where (source, f)
@@ -27,7 +53,13 @@ let inline map ([<InlineIfLambda>] f : 't -> 'r) source = ObservableExtensions.S
 /// Maps the given observable with the given function and the index of the element
 let inline mapi ([<InlineIfLambda>] f : int -> 't -> 'r) source = ObservableExtensions.Select (source, (fun i x -> f x i))
 
-/// Bypasses a specified number of elements in an observable sequence and then returns the remaining elements.
+/// Merges two observable sequences into one observable sequence
+let inline merge (source1, source2) = ObservableExtensions.Merge (source1, source2)
+
+/// Returns an observable sequence that contains only a single element
+let inline singleton item = Observable.Return<'T> item
+
+/// Bypasses a specified number of elements in an observable sequence and then returns the remaining elements
 let inline skip (count : int) (source) = ObservableExtensions.Skip (source, count)
 
 /// Takes n elements (from the beginning of an observable sequence?)
@@ -36,8 +68,45 @@ let inline take (count : int) (source) = ObservableExtensions.Take (source, coun
 /// Filters the observable elements of a sequence based on a predicate
 let inline where ([<InlineIfLambda>] f : 't -> bool) source = ObservableExtensions.Where (source, f)
 
+open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
+
+[<AutoOpen>]
+module Extensions =
+
+    [<AbstractClass; Sealed; Extension>]
+    type Observable private () =
+
+        static member ofSeq (items : _ seq, [<Optional>] cancellationToken) = Observable.ToObservable (items, cancellationToken)
+
+[<AutoOpen>]
+module OptionExtensions =
+
+    [<AbstractClass; Sealed; Extension>]
+    type Observable private () =
+
+        /// Applies the given function to each element of the observable. Returns
+        /// a sequence comprised of the results "x" for each element where
+        /// the function returns Some(x)
+        [<Extension>]
+        static member choose f = map f >> where Option.isSome >> map Option.get
+
+[<AutoOpen>]
+module ValueOptionExtensions =
+
+    [<AbstractClass; Sealed; Extension>]
+    type Observable private () =
+
+        /// Applies the given function to each element of the observable. Returns
+        /// a sequence comprised of the results "x" for each element where
+        /// the function returns ValueSome(x)
+        [<Extension>]
+        static member choose f = map f >> where ValueOption.isSome >> map ValueOption.get
+
+
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Builders =
+
     open System
 
     /// A reactive query builder.
