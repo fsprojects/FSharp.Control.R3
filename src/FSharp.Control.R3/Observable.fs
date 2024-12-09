@@ -12,7 +12,7 @@ let inline bind ([<InlineIfLambda>] f : 'T -> Observable<'TNext>) source = Obser
 /// Converts the elements of the sequence to the specified type
 let inline cast<'T, 'CastType> (source) = ObservableExtensions.Cast<'T, 'CastType> (source)
 
-let inline catch ([<InlineIfLambda>] f : 'Exn -> Observable<'TNext>) o = ObservableExtensions.Catch (o, f)
+let inline catch ([<InlineIfLambda>] f : 'Exn -> Observable<'T>) o = ObservableExtensions.Catch (o, f)
 
 /// Concatenates the second observable sequence to the first observable sequence
 /// upn the successful termination of the first
@@ -45,13 +45,13 @@ let inline distinct source = ObservableExtensions.Distinct source
 let inline empty () = Observable.Empty ()
 
 /// Filters the observable elements of a sequence based on a predicate
-let inline filter ([<InlineIfLambda>] f : 't -> bool) source = ObservableExtensions.Where (source, f)
+let inline filter ([<InlineIfLambda>] f : 'T -> bool) source = ObservableExtensions.Where (source, f)
 
 /// Maps the given observable with the given function
-let inline map ([<InlineIfLambda>] f : 't -> 'r) source = ObservableExtensions.Select (source, f)
+let inline map ([<InlineIfLambda>] f : 'T -> 'R) source = ObservableExtensions.Select (source, f)
 
 /// Maps the given observable with the given function and the index of the element
-let inline mapi ([<InlineIfLambda>] f : int -> 't -> 'r) source = ObservableExtensions.Select (source, (fun i x -> f x i))
+let inline mapi ([<InlineIfLambda>] f : int -> 'T -> 'R) source = ObservableExtensions.Select (source, (fun i x -> f x i))
 
 /// Merges two observable sequences into one observable sequence
 let inline merge (source1, source2) = ObservableExtensions.Merge (source1, source2)
@@ -68,7 +68,7 @@ let inline skip (count : int) (source) = ObservableExtensions.Skip (source, coun
 let inline take (count : int) (source) = ObservableExtensions.Take (source, count)
 
 /// Filters the observable elements of a sequence based on a predicate
-let inline where ([<InlineIfLambda>] f : 't -> bool) source = ObservableExtensions.Where (source, f)
+let inline where ([<InlineIfLambda>] f : 'T -> bool) source = ObservableExtensions.Where (source, f)
 
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
