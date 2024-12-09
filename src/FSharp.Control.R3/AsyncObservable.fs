@@ -5,6 +5,7 @@ open System.Threading
 open System.Threading.Tasks
 open FSharp.Control.R3
 
+/// <remarks>Caution! All functions returning <see cref="Async`1"/> are blocking and may never return if awaited</remarks>
 module Observable =
 
     /// Applies an accumulator function over an observable sequence, returning the
@@ -76,6 +77,27 @@ module Observable =
             options.MaxConcurrent
         )
 
+    /// Creates observable sequence from a single element returned by asynchronous computation
+    let ofAsync (computation : Async<'T>) =
+        Observable.FromAsync (fun ct ->
+            Async.StartImmediateAsTask (computation, cancellationToken = ct)
+            |> ValueTask<'T>)
+
+    let inline toArray source = async {
+        let! ct = Async.CancellationToken
+        return!
+            ObservableExtensions.ToArrayAsync (source, ct)
+            |> Async.AwaitTask
+    }
+
+    let toList source = async {
+        let! ct = Async.CancellationToken
+        let! array =
+            ObservableExtensions.ToArrayAsync (source, ct)
+            |> Async.AwaitTask
+        return List.ofArray array
+    }
+
     /// <summary>
     /// Invokes an asynchronous action for each element in the observable sequence, and propagates all observer
     /// messages through the result sequence.
@@ -85,3 +107,40 @@ module Observable =
     /// by intercepting the message stream to run arbitrary actions for messages on the pipeline.
     /// </remarks>
     let iterAsync options (action : 't -> Async<unit>) source = source |> mapAsync options action |> length |> Async.Ignore
+
+[<AutoOpen>]
+module Extensions =
+
+    open System.Runtime.CompilerServices
+    open System.Runtime.InteropServices
+
+    [<AbstractClass; Sealed; Extension>]
+    type Observable private () =
+
+        static member toLookup (source, keySelector : 'T -> 'Key, [<Optional>] cancellationToken) = async {
+            let! ct = Async.CancellationToken
+            return!
+                ObservableExtensions.ToLookupAsync (source, keySelector, ct)
+                |> Async.AwaitTask
+        }
+
+        static member toLookup (source, keySelector : 'T -> 'Key, keyComparer, [<Optional>] cancellationToken) = async {
+            let! ct = Async.CancellationToken
+            return!
+                ObservableExtensions.ToLookupAsync (source, keySelector, keyComparer = keyComparer, cancellationToken = ct)
+                |> Async.AwaitTask
+        }
+
+        static member toLookup (source, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, [<Optional>] cancellationToken) = async {
+            let! ct = Async.CancellationToken
+            return!
+                ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector = elementSelector, cancellationToken = ct)
+                |> Async.AwaitTask
+        }
+
+        static member toLookup (source, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, keyComparer, [<Optional>] cancellationToken) = async {
+            let! ct = Async.CancellationToken
+            return!
+                ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector, keyComparer = keyComparer, cancellationToken = ct)
+                |> Async.AwaitTask
+        }
