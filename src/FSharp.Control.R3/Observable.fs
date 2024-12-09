@@ -56,6 +56,8 @@ let inline mapi ([<InlineIfLambda>] f : int -> 't -> 'r) source = ObservableExte
 /// Merges two observable sequences into one observable sequence
 let inline merge (source1, source2) = ObservableExtensions.Merge (source1, source2)
 
+let inline ofType<'T, 'R> (source) = ObservableExtensions.OfType<'T, 'R> (source)
+
 /// Returns an observable sequence that contains only a single element
 let inline singleton item = Observable.Return<'T> item
 
