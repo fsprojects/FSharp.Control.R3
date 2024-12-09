@@ -12,6 +12,10 @@ let inline bind ([<InlineIfLambda>] f : 'T -> Observable<'TNext>) source = Obser
 /// Converts the elements of the sequence to the specified type
 let inline cast<'T, 'CastType> (source) = ObservableExtensions.Cast<'T, 'CastType> (source)
 
+/// <summary>
+/// Adds an error handler to an observable sequence.
+/// </summary>
+/// <remarks>Exception does not stop further processing</remarks>
 let inline catch ([<InlineIfLambda>] f : 'Exn -> Observable<'T>) o = ObservableExtensions.Catch (o, f)
 
 /// Concatenates the second observable sequence to the first observable sequence
