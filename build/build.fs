@@ -16,7 +16,8 @@ let environVarAsBoolOrDefault varName defaultValue =
     |> ValueOption.ofObj
     |> ValueOption.map (fun envvar ->
         truthyConsts
-        |> List.exists (fun ``const`` -> String.Equals (``const``, envvar, StringComparison.InvariantCultureIgnoreCase)))
+        |> List.exists (fun ``const`` -> String.Equals (``const``, envvar, StringComparison.InvariantCultureIgnoreCase))
+    )
     |> ValueOption.defaultValue defaultValue
 
 //-----------------------------------------------------------------------------
@@ -247,7 +248,8 @@ let clean _ =
     !!srcGlob ++ testsGlob
     |> Seq.collect (fun p ->
         [ "bin"; "obj" ]
-        |> Seq.map (fun sp -> IO.Path.GetDirectoryName p </> sp))
+        |> Seq.map (fun sp -> IO.Path.GetDirectoryName p </> sp)
+    )
     |> Shell.cleanDirs
 
 let dotnetRestore _ =
@@ -262,7 +264,8 @@ let dotnetRestore _ =
                         MSBuildParams = disableBinLog c.MSBuildParams
                         Common = c.Common |> DotNet.Options.withCustomParams (Some (args))
                 })
-                dir)
+                dir
+    )
     |> Seq.iter (retryIfInCI 10)
 
 let updateChangelog ctx =
@@ -337,7 +340,8 @@ let fsharpAnalyzers _ =
             ]
             |> argParser.PrintCommandLineArgumentsFlat
 
-        dotnet.fsharpAnalyzer id args)
+        dotnet.fsharpAnalyzer id args
+    )
 
 let dotnetTest ctx =
     let excludeCoverage =
@@ -406,10 +410,12 @@ let watchTests _ =
             dotnet.watch
                 (fun opt ->
                     opt
-                    |> DotNet.Options.withWorkingDirectory (IO.Path.GetDirectoryName proj))
+                    |> DotNet.Options.withWorkingDirectory (IO.Path.GetDirectoryName proj)
+                )
                 "test"
                 ""
-            |> ignore)
+            |> ignore
+    )
     |> Seq.iter (invokeAsync >> Async.Catch >> Async.Ignore >> Async.Start)
 
     printfn "Press Ctrl+C (or Ctrl+Break) to stop..."
@@ -457,7 +463,8 @@ let generateAssemblyInfo _ =
         match projFileName with
         | Fsproj -> AssemblyInfoFile.createFSharp (folderName </> "AssemblyInfo.fs") attributes
         | Csproj -> AssemblyInfoFile.createCSharp ((folderName </> "Properties") </> "AssemblyInfo.cs") attributes
-        | Vbproj -> AssemblyInfoFile.createVisualBasic ((folderName </> "My Project") </> "AssemblyInfo.vb") attributes)
+        | Vbproj -> AssemblyInfoFile.createVisualBasic ((folderName </> "My Project") </> "AssemblyInfo.vb") attributes
+    )
 
 let dotnetPack ctx =
     // Get release notes with properly-linked version number
@@ -594,7 +601,8 @@ let initTargets (ctx : Context.FakeExecutionContext) =
         |> Seq.exists (fun (arg, value) ->
             (String.Equals (arg, "-t", StringComparison.OrdinalIgnoreCase)
              || String.Equals (arg, "--target", StringComparison.OrdinalIgnoreCase))
-            && String.Equals (value, "PublishToGitHub", StringComparison.OrdinalIgnoreCase))
+            && String.Equals (value, "PublishToGitHub", StringComparison.OrdinalIgnoreCase)
+        )
 
     /// Defines a dependency - y is dependent on x. Finishes the chain.
     let (==>!) x y = x ==> y |> ignore

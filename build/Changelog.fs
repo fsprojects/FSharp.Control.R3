@@ -35,7 +35,8 @@ let mkLinkReference (newVersion : SemVerInfo) (changelog : Changelog.Changelog) 
             changelog.Entries
             |> List.skipWhile (fun entry ->
                 entry.SemVer.PreRelease.IsSome
-                || versionTuple entry.SemVer = versionTuple newVersion)
+                || versionTuple entry.SemVer = versionTuple newVersion
+            )
             |> List.tryHead
 
         let linkTarget =
@@ -121,7 +122,8 @@ let updateChangelog changelogPath (changelog : Fake.Core.Changelog.Changelog) gi
              else
                  "(no date specified)")
 
-        failwith "Can't release with a duplicate version number")
+        failwith "Can't release with a duplicate version number"
+    )
 
     changelog.Entries
     |> List.tryFind (fun entry -> entry.SemVer > newVersion)
@@ -135,7 +137,8 @@ let updateChangelog changelogPath (changelog : Fake.Core.Changelog.Changelog) gi
              else
                  "(no date specified)")
 
-        failwith "Can't release with a version number older than an existing release")
+        failwith "Can't release with a version number older than an existing release"
+    )
 
     let versionTuple version = (version.Major, version.Minor, version.Patch)
 
@@ -143,7 +146,8 @@ let updateChangelog changelogPath (changelog : Fake.Core.Changelog.Changelog) gi
         changelog.Entries
         |> List.filter (fun entry ->
             entry.SemVer.PreRelease.IsSome
-            && versionTuple entry.SemVer = versionTuple newVersion)
+            && versionTuple entry.SemVer = versionTuple newVersion
+        )
 
     let prereleaseChanges =
         prereleaseEntries

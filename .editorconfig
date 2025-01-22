@@ -264,11 +264,11 @@ fsharp_align_function_signature_to_indentation=false
 
 # see docs: https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#fsharp_alternative_long_member_definitions
 # default false
-fsharp_alternative_long_member_definitions=false
+fsharp_alternative_long_member_definitions=true
 
 # places closing paren in lambda on a newline in multiline lambdas
 # default false
-fsharp_multi_line_lambda_closing_newline=false
+fsharp_multi_line_lambda_closing_newline=true
 
 # allows the 'else'-branch to be aligned at same level as 'else' if the ret type allows it
 # false: match x with

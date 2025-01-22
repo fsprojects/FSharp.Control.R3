@@ -81,7 +81,8 @@ module Observable =
     let ofAsync (computation : Async<'T>) =
         Observable.FromAsync (fun ct ->
             Async.StartImmediateAsTask (computation, cancellationToken = ct)
-            |> ValueTask<'T>)
+            |> ValueTask<'T>
+        )
 
     let inline toArray source = async {
         let! ct = Async.CancellationToken

@@ -136,14 +136,14 @@ module Fsdocs =
         let buildSubstitutionParameters (subParameters : seq<string * string>) =
             let subParameters =
                 subParameters
-                |> Seq.map (fun (key, value) -> (sprintf "%s %s" key value))
+                |> Seq.map (fun (key, value) -> $"%s{key} %s{value}")
                 |> String.concat " "
 
             sprintf "--parameters %s" subParameters
 
         System.Text.StringBuilder ()
         |> StringBuilder.appendIfSome buildParams.Input (sprintf "--input %s")
-        |> StringBuilder.appendIfSome buildParams.Projects (fun projects -> sprintf "--projects %s" (projects |> String.concat " "))
+        |> StringBuilder.appendIfSome buildParams.Projects (fun projects -> $"""--projects %s{projects |> String.concat " "}""")
         |> StringBuilder.appendIfSome buildParams.Output (sprintf "--output %s")
         |> StringBuilder.appendIfSome buildParams.NoApiDocs (fun _ -> "--noapidocs")
         |> StringBuilder.appendIfSome buildParams.Eval (fun _ -> "--eval")
