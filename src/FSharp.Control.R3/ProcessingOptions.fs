@@ -71,7 +71,6 @@ type ChunkConfiguration<'T> =
     | ChunkAsyncWindow of AsyncWindow : Func<'T, CancellationToken, ValueTask> * ConfigureAwait : bool
     | ChunkWindowBoundaries of WindowBoundaries : Observable<'T>
 
-[<AutoOpen>]
 module ChunkConfiguration =
     let inline TimeSpan windowTime = ChunkTimeSpan (windowTime, ObservableSystem.DefaultTimeProvider)
     let inline TimeSpanCount windowTime windowLength =
