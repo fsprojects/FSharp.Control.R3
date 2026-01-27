@@ -9,8 +9,8 @@ index: 1
 
 `IObservable<T>` is .NET way of dealing with lazy event streams with publish/subscribe-pattern called Reactive Programming, "LINQ to Events and async operations".
 
-Where a standard list (IEnumerable) is pull-based, IObservable is a push-based (infinite) list, like "a lazy list of mouse events": when an event happens, the corresponding list gets a new value.
-If Nullable is just "a list of 0 or 1", then async-await could be just an IObservable of 0 or 1.
+Where a standard list (`IEnumerable`) is pull-based, `IObservable` is a push-based (infinite) list, like "a lazy list of mouse events": when an event happens, the corresponding list gets a new value.
+If `Nullable` is just "a list of 0 or 1", then async-await could be just an `IObservable` of 0 or 1.
 
 There are many advantages of using reactive programming and Rx:
 
