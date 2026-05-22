@@ -15,10 +15,14 @@ See https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-director
     <Authors>fsprojects</Authors>
     <RepositoryUrl>https://github.com/fsprojects/FSharp.Control.R3</RepositoryUrl>
   </PropertyGroup>
+
   <PropertyGroup>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/"/>
     <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="/"/>

@@ -21,6 +21,7 @@ See https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-director
   <!-- Make sure that files are formatted before building -->
   <Target Name="Format" Condition=" '$(MSBuildProjectExtension)' == '.fsproj' AND '$(DesignTimeBuild)' != 'true' " BeforeTargets="BeforeBuild" Inputs="@(Compile)" Outputs="$(_DotnetFantomasOutputFile)" >
     <Exec Command="dotnet fantomas $(MSBuildProjectDirectory)" StandardOutputImportance="High" StandardErrorImportance="High" WorkingDirectory="$(MSBuildThisFileDirectory)" ContinueOnError="WarnAndContinue" />
+    <Exec Command="dotnet fantomas $(MSBuildProjectDirectory)" StandardOutputImportance="High" StandardErrorImportance="High" WorkingDirectory="$(MSBuildThisFileDirectory)" ContinueOnError="WarnAndContinue" />
     <Touch Files="$(_DotnetFantomasOutputFile)" AlwaysCreate="True" ForceTouch="True" />
   </Target>
 
