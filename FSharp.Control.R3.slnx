@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="CHANGELOG.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src\FSharp.Control.R3\FSharp.Control.R3.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\FSharp.Control.R3.Tests\FSharp.Control.R3.Tests.fsproj" />
+  </Folder>
+  <Project Path="build\build.fsproj" />
+</Solution>

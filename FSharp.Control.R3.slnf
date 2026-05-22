@@ -1,6 +1,6 @@
 {
   "solution": {
-    "path": "FSharp.Control.R3.sln",
+    "path": "FSharp.Control.R3.slnx",
     "projects": [
       "src\\FSharp.Control.R3\\FSharp.Control.R3.fsproj",
       "tests\\FSharp.Control.R3.Tests\\FSharp.Control.R3.Tests.fsproj"
