@@ -5,9 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="BuilderTests.fs" />
-    <Compile Include="ObservableTests.fs" />
-    <Compile Include="IntegrationParityTests.fs" />
+    <Compile Include="TestHelpers/TestHelpers.fs" />
+    <Compile Include="Observable/*.fs" />
+    <Compile Include="AsyncObservable/*.fs" />
+    <Compile Include="TaskObservable/*.fs" />
+    <Compile Include="ProcessingOptions/*.fs" />
   </ItemGroup>
 
   <ItemGroup>
