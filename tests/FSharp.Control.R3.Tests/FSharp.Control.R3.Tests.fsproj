@@ -7,6 +7,7 @@
   <ItemGroup>
     <Compile Include="BuilderTests.fs" />
     <Compile Include="ObservableTests.fs" />
+    <Compile Include="IntegrationParityTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
