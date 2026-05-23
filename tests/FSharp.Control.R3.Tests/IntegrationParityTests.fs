@@ -5,28 +5,31 @@ open System.Threading.Tasks
 open FSharp.Control.R3
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
+module ObservableModule = FSharp.Control.R3.Observable
+module AsyncObservable = FSharp.Control.R3.Async.Observable
+module TaskObservable = FSharp.Control.R3.Task.Observable
+
 [<TestClass>]
 type IntegrationParityTests () =
 
-    static member private SourceValues = [ 1; 2; 3; 4; 5; 6 ]
+    static member private SourceValues = [| 1; 2; 3; 4; 5; 6 |]
 
-    static member private CreateSource () = R3.Observable.ToObservable IntegrationParityTests.SourceValues
+    static member private CreateSourceObservable () = R3.Observable.ToObservable IntegrationParityTests.SourceValues
 
     [<TestMethod>]
     member _.``Observable wrappers should match direct R3 pipeline results`` () : Task = task {
-        let expectedPipeline =
-            IntegrationParityTests.CreateSource ()
-            |> fun source -> R3.ObservableExtensions.Where (source, fun x -> x % 2 = 0)
-            |> fun source -> R3.ObservableExtensions.Select (source, fun x -> x * 10)
-            |> fun source -> R3.ObservableExtensions.Skip (source, 1)
-            |> fun source -> R3.ObservableExtensions.Take (source, 1)
+        let expectedSource = IntegrationParityTests.CreateSourceObservable ()
+        let expectedFiltered = R3.ObservableExtensions.Where (expectedSource, fun x -> x % 2 = 0)
+        let expectedSelected = R3.ObservableExtensions.Select (expectedFiltered, fun x -> x * 10)
+        let expectedSkipped = R3.ObservableExtensions.Skip (expectedSelected, 1)
+        let expectedPipeline = R3.ObservableExtensions.Take (expectedSkipped, 1)
 
         let actualPipeline =
-            IntegrationParityTests.CreateSource ()
-            |> FSharp.Control.R3.Observable.filter (fun x -> x % 2 = 0)
-            |> FSharp.Control.R3.Observable.map (fun x -> x * 10)
-            |> FSharp.Control.R3.Observable.skip 1
-            |> FSharp.Control.R3.Observable.take 1
+            IntegrationParityTests.CreateSourceObservable ()
+            |> ObservableModule.filter (fun x -> x % 2 = 0)
+            |> ObservableModule.map (fun x -> x * 10)
+            |> ObservableModule.skip 1
+            |> ObservableModule.take 1
 
         let! expected = R3.ObservableExtensions.ToArrayAsync expectedPipeline
         let! actual = R3.ObservableExtensions.ToArrayAsync actualPipeline
@@ -36,12 +39,12 @@ type IntegrationParityTests () =
 
     [<TestMethod>]
     member _.``Async Observable toArray should match direct R3 ToArrayAsync`` () : Task = task {
-        let! expected = R3.ObservableExtensions.ToArrayAsync (IntegrationParityTests.CreateSource ())
+        let! expected = R3.ObservableExtensions.ToArrayAsync (IntegrationParityTests.CreateSourceObservable ())
 
         let! actual =
-            IntegrationParityTests.CreateSource ()
-            |> FSharp.Control.R3.Async.Observable.toArray
-            |> Async.StartImmediateAsTask
+            IntegrationParityTests.CreateSourceObservable ()
+            |> AsyncObservable.toArray
+            |> Async.StartAsTask
 
         CollectionAssert.AreEqual (expected, actual, "Async wrapper toArray must match direct R3 ToArrayAsync.")
     }
@@ -50,13 +53,12 @@ type IntegrationParityTests () =
     member _.``Task Observable mapAsync should match direct R3 SelectAwait`` () : Task = task {
         let options = ProcessingOptions.Default
 
-        let selector x (ct : CancellationToken) =
-            ValueTask<int> (Task.FromResult (x + (if ct.IsCancellationRequested then 0 else 1)))
+        let addOne x = x + 1
 
         let expectedPipeline =
             R3.ObservableExtensions.SelectAwait (
-                IntegrationParityTests.CreateSource (),
-                selector,
+                IntegrationParityTests.CreateSourceObservable (),
+                (fun x (_ : CancellationToken) -> ValueTask.FromResult (addOne x)),
                 options.AwaitOperation,
                 options.ConfigureAwait,
                 options.CancelOnCompleted,
@@ -64,10 +66,8 @@ type IntegrationParityTests () =
             )
 
         let actualPipeline =
-            IntegrationParityTests.CreateSource ()
-            |> FSharp.Control.R3.Task.Observable.mapAsync
-                options
-                (fun (ct : CancellationToken) x -> Task.FromResult (x + (if ct.IsCancellationRequested then 0 else 1)))
+            IntegrationParityTests.CreateSourceObservable ()
+            |> TaskObservable.mapAsync options (fun (_ : CancellationToken) x -> Task.FromResult (addOne x))
 
         let! expected = R3.ObservableExtensions.ToArrayAsync expectedPipeline
         let! actual = R3.ObservableExtensions.ToArrayAsync actualPipeline
