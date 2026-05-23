@@ -17,7 +17,7 @@ type MapAsyncTests () =
         let expected =
             ObservableExtensions.SelectAwait (
                 source,
-                (fun x (_ : Threading.CancellationToken) -> ValueTask.FromResult (x + 1)),
+                (fun x (_ : System.Threading.CancellationToken) -> ValueTask.FromResult (x + 1)),
                 options.AwaitOperation,
                 options.ConfigureAwait,
                 options.CancelOnCompleted,

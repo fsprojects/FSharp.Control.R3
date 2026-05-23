@@ -15,9 +15,10 @@ type AggregateTests () =
         let source = TestHelpers.createObservable [| 1; 2; 3 |]
         let expected =
             ObservableExtensions.AggregateAsync (source, 0, (fun acc x -> acc + x), TestHelpers.cancellationToken)
+        let! expectedValue = expected
         let! actual =
             source
             |> Observable.aggregate 0 (fun acc x -> acc + x)
             |> Async.StartAsTask
-        Assert.AreEqual (expected.Result, actual, "Async aggregate must match direct AggregateAsync result.")
+        Assert.AreEqual (expectedValue, actual, "Async aggregate must match direct AggregateAsync result.")
     }

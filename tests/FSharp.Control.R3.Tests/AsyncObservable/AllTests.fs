@@ -15,9 +15,10 @@ type AllTests () =
         let source = TestHelpers.createObservable [| 2; 4; 6 |]
         let expected =
             ObservableExtensions.AllAsync (source, (fun x -> x % 2 = 0), TestHelpers.cancellationToken)
+        let! expectedValue = expected
         let! actual =
             source
             |> Observable.all (fun x -> x % 2 = 0)
             |> Async.StartAsTask
-        Assert.AreEqual (expected.Result, actual, "Async all must match direct AllAsync result.")
+        Assert.AreEqual (expectedValue, actual, "Async all must match direct AllAsync result.")
     }
