@@ -4,6 +4,7 @@ open System.Threading
 open System.Threading.Tasks
 open FSharp.Control.R3
 open Microsoft.VisualStudio.TestTools.UnitTesting
+open R3
 
 module ObservableModule = FSharp.Control.R3.Observable
 module AsyncObservable = FSharp.Control.R3.Async.Observable
@@ -18,11 +19,12 @@ type IntegrationParityTests () =
 
     [<TestMethod>]
     member _.``Observable wrappers should match direct R3 pipeline results`` () : Task = task {
-        let expectedSource = IntegrationParityTests.CreateSourceObservable ()
-        let expectedFiltered = R3.ObservableExtensions.Where (expectedSource, fun x -> x % 2 = 0)
-        let expectedSelected = R3.ObservableExtensions.Select (expectedFiltered, fun x -> x * 10)
-        let expectedSkipped = R3.ObservableExtensions.Skip (expectedSelected, 1)
-        let expectedPipeline = R3.ObservableExtensions.Take (expectedSkipped, 1)
+        let expectedPipeline =
+            IntegrationParityTests.CreateSourceObservable ()
+            |> _.Where(fun x -> x % 2 = 0)
+            |> _.Select(fun x -> x * 10)
+            |> _.Skip(1)
+            |> _.Take(1)
 
         let actualPipeline =
             IntegrationParityTests.CreateSourceObservable ()
