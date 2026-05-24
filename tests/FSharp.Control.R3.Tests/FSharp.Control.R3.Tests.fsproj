@@ -9,7 +9,7 @@
     <Compile Include="Observable/*.fs" />
     <Compile Include="AsyncObservable/*.fs" />
     <Compile Include="TaskObservable/*.fs" />
-    <Compile Include="ProcessingOptions/*.fs" />
+    <Compile Include="ProcessingOptionsTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
