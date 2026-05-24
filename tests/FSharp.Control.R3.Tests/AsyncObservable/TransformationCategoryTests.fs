@@ -1,6 +1,5 @@
 namespace FSharp.Control.R3.Tests.AsyncObservable
 
-open System
 open System.Threading.Tasks
 open Microsoft.VisualStudio.TestTools.UnitTesting
 open R3
