@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="TestHelpers/TestHelpers.fs" />
+    <Compile Include="TestHelpers.fs" />
     <Compile Include="Observable/*.fs" />
     <Compile Include="AsyncObservable/*.fs" />
     <Compile Include="TaskObservable/*.fs" />
