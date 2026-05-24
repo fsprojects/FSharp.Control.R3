@@ -12,12 +12,12 @@ open FSharp.Control.R3.Tests
 [<TestClass>]
 type MapAsyncTests () =
     [<TestMethod>]
-    member _.``mapAsync should transform each value`` () =
+    member _.``mapAsync should transform each value`` () : Task = task {
         let options = ProcessingOptions.Default
         let source = TestHelpers.createObservable [| 1; 2; 3 |]
-        let actual =
+        let! actual =
             source
             |> Observable.mapAsync options (fun (_ : CancellationToken) x -> Task.FromResult (x + 1))
             |> TestHelpers.toArrayTask
-            |> TestHelpers.waitTask
         CollectionAssert.AreEqual ([| 2; 3; 4 |], actual, "Task mapAsync must transform each source value.")
+    }
