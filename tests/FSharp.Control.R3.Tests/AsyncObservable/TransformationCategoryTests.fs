@@ -13,7 +13,7 @@ type TransformationCategoryTests () =
     member _.``mapAsync should match direct SelectAwait`` () : Task = task {
         let options = ProcessingOptions.Default
         let source = TestHelpers.createObservable [| 1; 2; 3 |]
-        let expected =
+        let! expected =
             ObservableExtensions.SelectAwait (
                 source,
                 (fun x (_ : System.Threading.CancellationToken) -> ValueTask.FromResult (x + 1)),
@@ -23,13 +23,11 @@ type TransformationCategoryTests () =
                 options.MaxConcurrent
             )
             |> TestHelpers.toArrayTask
-            |> TestHelpers.waitTask
 
-        let actual =
+        let! actual =
             source
             |> Observable.mapAsync options (fun x -> async { return x + 1 })
             |> TestHelpers.toArrayTask
-            |> TestHelpers.waitTask
 
         CollectionAssert.AreEqual (expected, actual, "Async mapAsync must match direct SelectAwait behavior.")
     }
@@ -54,9 +52,10 @@ type TransformationCategoryTests () =
     }
 
     [<TestMethod>]
-    member _.``ofAsync should emit computation result`` () =
-        let actual =
+    member _.``ofAsync should emit computation result`` () : Task = task {
+        let! actual =
             Observable.ofAsync (async { return 7 })
             |> TestHelpers.toArrayTask
-            |> TestHelpers.waitTask
+
         CollectionAssert.AreEqual ([| 7 |], actual, "ofAsync must emit the async computation result.")
+    }
