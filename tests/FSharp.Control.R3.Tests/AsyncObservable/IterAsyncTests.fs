@@ -2,8 +2,9 @@ namespace FSharp.Control.R3.Tests.AsyncObservable
 
 open System
 open System.Threading.Tasks
+open global.FSharp.Control
 open Microsoft.VisualStudio.TestTools.UnitTesting
-open R3
+open global.R3
 open FSharp.Control.R3
 open FSharp.Control.R3.Async
 open FSharp.Control.R3.Tests
@@ -18,7 +19,5 @@ type IterAsyncTests () =
         do!
             source
             |> Observable.iterAsync options (fun x -> async { sum <- sum + x })
-            |> Async.StartAsTask
-            :> Task
         Assert.AreEqual (6, sum, "iterAsync must apply asynchronous action to every value.")
     }

@@ -2,8 +2,9 @@ namespace FSharp.Control.R3.Tests.AsyncObservable
 
 open System
 open System.Threading.Tasks
+open global.FSharp.Control
 open Microsoft.VisualStudio.TestTools.UnitTesting
-open R3
+open global.R3
 open FSharp.Control.R3
 open FSharp.Control.R3.Async
 open FSharp.Control.R3.Tests
@@ -16,9 +17,6 @@ type AggregateTests () =
         let expected =
             ObservableExtensions.AggregateAsync (source, 0, (fun acc x -> acc + x), TestHelpers.cancellationToken)
         let! expectedValue = expected
-        let! actual =
-            source
-            |> Observable.aggregate 0 (fun acc x -> acc + x)
-            |> Async.StartAsTask
+        let! actual = source |> Observable.aggregate 0 (fun acc x -> acc + x)
         Assert.AreEqual (expectedValue, actual, "Async aggregate must match direct AggregateAsync result.")
     }

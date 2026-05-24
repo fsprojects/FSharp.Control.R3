@@ -2,8 +2,9 @@ namespace FSharp.Control.R3.Tests.AsyncObservable
 
 open System
 open System.Threading.Tasks
+open global.FSharp.Control
 open Microsoft.VisualStudio.TestTools.UnitTesting
-open R3
+open global.R3
 open FSharp.Control.R3
 open FSharp.Control.R3.Async
 open FSharp.Control.R3.Tests
@@ -16,9 +17,6 @@ type AllTests () =
         let expected =
             ObservableExtensions.AllAsync (source, (fun x -> x % 2 = 0), TestHelpers.cancellationToken)
         let! expectedValue = expected
-        let! actual =
-            source
-            |> Observable.all (fun x -> x % 2 = 0)
-            |> Async.StartAsTask
+        let! actual = source |> Observable.all (fun x -> x % 2 = 0)
         Assert.AreEqual (expectedValue, actual, "Async all must match direct AllAsync result.")
     }
