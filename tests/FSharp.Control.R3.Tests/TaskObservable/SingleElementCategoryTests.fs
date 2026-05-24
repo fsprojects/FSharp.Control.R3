@@ -1,6 +1,5 @@
 namespace FSharp.Control.R3.Tests.TaskObservable
 
-open System
 open System.Threading
 open System.Threading.Tasks
 open Microsoft.VisualStudio.TestTools.UnitTesting
@@ -10,7 +9,7 @@ open FSharp.Control.R3.Task
 open FSharp.Control.R3.Tests
 
 [<TestClass>]
-type FirstAsyncTests () =
+type SingleElementCategoryTests () =
     [<TestMethod>]
     member _.``firstAsync should return first value`` () : Task = task {
         let source = TestHelpers.createObservable [| 5; 6 |]
