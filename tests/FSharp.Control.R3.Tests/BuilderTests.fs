@@ -39,7 +39,7 @@ type BuilderTests () =
 
                         hasvisited <- true
 
-                        Assert.AreEqual<int> (4, i)
+                        Assert.AreEqual<int>(4, i)
 
                         return ()
                     }
@@ -50,4 +50,4 @@ type BuilderTests () =
         [ 3..5 ] |> List.iter r3Bus.OnNext
         // Note: Query will not be awaited, that's why delay.
         System.Threading.Thread.Sleep 300
-        Assert.AreEqual<bool> (true, hasvisited)
+        Assert.AreEqual<bool>(true, hasvisited)

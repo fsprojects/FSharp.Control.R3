@@ -25,7 +25,7 @@ type ObservableTests () =
 
             let! res = lengthObs
 
-            Assert.AreEqual<int> (0, res)
+            Assert.AreEqual<int>(0, res)
 
         }
         |> Async.StartImmediateAsTask
@@ -53,7 +53,7 @@ type ObservableTests () =
 
                         hasvisited <- true
 
-                        Assert.AreEqual<int> (4, i)
+                        Assert.AreEqual<int>(4, i)
 
                         return ()
                     }
@@ -62,4 +62,4 @@ type ObservableTests () =
 
         // Publish some events, "4" should be heard
         [ 3..5 ] |> List.iter r3Bus.OnNext
-        Assert.AreEqual<bool> (true, hasvisited)
+        Assert.AreEqual<bool>(true, hasvisited)

@@ -67,7 +67,7 @@ module Observable =
 
     /// Maps the given observable with the given asynchronous function
     let mapAsync (options : ProcessingOptions) (f : 't -> Async<'r>) source =
-        let selector x ct = ValueTask<'r> (Async.StartImmediateAsTask (f x, ct))
+        let selector x ct = ValueTask<'r>(Async.StartImmediateAsTask (f x, ct))
         ObservableExtensions.SelectAwait (
             source,
             selector,
@@ -139,9 +139,10 @@ module Extensions =
                 |> Async.AwaitTask
         }
 
-        static member toLookup (source, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, keyComparer, [<Optional>] cancellationToken) = async {
-            let! ct = Async.CancellationToken
-            return!
-                ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector, keyComparer = keyComparer, cancellationToken = ct)
-                |> Async.AwaitTask
-        }
+        static member toLookup (source, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, keyComparer, [<Optional>] cancellationToken) =
+            async {
+                let! ct = Async.CancellationToken
+                return!
+                    ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector, keyComparer = keyComparer, cancellationToken = ct)
+                    |> Async.AwaitTask
+            }

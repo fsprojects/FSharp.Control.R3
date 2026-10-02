@@ -39,7 +39,7 @@ module Observable =
 
     /// Maps the given observable with the given asynchronous function
     let mapAsync (options : ProcessingOptions) (f : CancellationToken -> 'T -> Task<'R>) source =
-        let selector x ct = ValueTask<'R> (f ct x)
+        let selector x ct = ValueTask<'R>(f ct x)
         ObservableExtensions.SelectAwait (
             source,
             selector,
