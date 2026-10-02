@@ -50,10 +50,9 @@ let distDir = rootDirectory </> "dist"
 
 let distGlob = distDir </> "*.nupkg"
 
-let coverageThresholdPercent = 0
+let testResultsDir = rootDirectory </> "TestResults"
 
 let coverageReportDir = rootDirectory </> "docs" </> "coverage"
-
 
 let docsDir = rootDirectory </> "docs"
 
@@ -176,9 +175,9 @@ module FSharpAnalyzers =
             member s.Usage = ""
 
 
-module DocsTool =
-    let quoted s = $"\"%s{s}\""
+let quoted s = $"\"%s{s}\""
 
+module DocsTool =
     let fsDocsDotnetOptions (o : DotNet.Options) = { o with WorkingDirectory = rootDirectory }
 
     let fsDocsBuildParams configuration (p : Fsdocs.BuildCommandParams) = {
@@ -242,7 +241,7 @@ let allPublishChecks () = failOnLocalBuild ()
 let disableBinLog (p : MSBuild.CliArguments) = { p with DisableInternalBinLog = true }
 
 let clean _ =
-    [ "bin"; "temp"; distDir; coverageReportDir ]
+    [ "bin"; "temp"; distDir; coverageReportDir; testResultsDir ]
     |> Shell.cleanDirs
 
     !!srcGlob ++ testsGlob
@@ -344,49 +343,49 @@ let fsharpAnalyzers _ =
     )
 
 let dotnetTest ctx =
-    let excludeCoverage =
-        !!testsGlob
-        |> Seq.map IO.Path.GetFileNameWithoutExtension
-        |> String.concat "|"
+    // Create test results directory if it doesn't exist
+    Directory.create testResultsDir
+
+    let dotnetConfiguration = configuration (ctx.Context.AllExecutingTargets) |> string
 
     let isGenerateCoverageReport = ctx.Context.TryFindTarget("GenerateCoverageReport").IsSome
 
     let args = [
         "--no-build"
+        "--configuration"
+        dotnetConfiguration
         if enableCodeCoverage || isGenerateCoverageReport then
-            sprintf "/p:AltCover=true"
-
-            if not isGenerateCoverageReport then
-                sprintf "/p:AltCoverThreshold=%d" coverageThresholdPercent
-
-            sprintf "/p:AltCoverAssemblyExcludeFilter=%s" excludeCoverage
-            "/p:AltCoverLocalSource=true"
+            "--coverage"
+            "--coverage-output-format"
+            "cobertura"
+            "--results-directory"
+            quoted testResultsDir
     ]
 
-    DotNet.test
-        (fun c ->
-
-            {
-                c with
-                    MSBuildParams = disableBinLog c.MSBuildParams
-                    Configuration = configuration (ctx.Context.AllExecutingTargets)
-                    Common = c.Common |> DotNet.Options.withAdditionalArgs args
-            })
-        sln
+    !!testsGlob
+    |> Seq.iter (fun testProject ->
+        [ "--project"; quoted testProject; yield! args ]
+        |> String.concat " "
+        |> DotNet.exec id "test"
+        |> failOnBadExitAndPrint
+    )
 
 let generateCoverageReport _ =
-    let coverageReports = !! "tests/**/coverage*.xml" |> String.concat ";"
+    let coverageFiles =
+        !!(testResultsDir </> "*.cobertura.xml")
+        ++ (testResultsDir </> "*/coverage.cobertura.xml")
 
     let sourceDirs = !!srcGlob |> Seq.map Path.getDirectory |> String.concat ";"
 
     let independentArgs = [
-        sprintf "-reports:\"%s\"" coverageReports
+        sprintf "-reports:\"%s\"" (coverageFiles |> String.concat ";")
         sprintf "-targetdir:\"%s\"" coverageReportDir
         // Add source dir
         sprintf "-sourcedirs:\"%s\"" sourceDirs
-        // Ignore Tests and if AltCover.Recorder.g sneaks in
-        sprintf "-assemblyfilters:\"%s\"" "-*.Tests;-AltCover.Recorder.g"
-        sprintf "-Reporttypes:%s" "Html"
+        // Ignore test assemblies
+        sprintf "-assemblyfilters:\"%s\"" "-*.Tests"
+        // Generate HTML and Cobertura reports
+        sprintf "-reporttypes:%s" "Html;Cobertura"
     ]
 
     let args = independentArgs |> String.concat " "
