@@ -27,7 +27,7 @@ FSharp.Control.R3 | [![NuGet Badge](https://buildstats.info/nuget/FSharp.Control
 
 Make sure the following **requirements** are installed on your system:
 
-- [dotnet SDK](https://www.microsoft.com/net/download/core) 6.0 or higher
+- [dotnet SDK](https://www.microsoft.com/net/download/core) 10.0.401 or higher (uses F# 10)
 
 or
 
