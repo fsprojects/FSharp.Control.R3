@@ -10,7 +10,7 @@ let inline asObservable source : Observable<'Source> = ObservableExtensions.AsOb
 let inline bind ([<InlineIfLambda>] f : 'T -> Observable<'TNext>) source = ObservableExtensions.SelectMany (source, f)
 
 /// Converts the elements of the sequence to the specified type
-let inline cast<'T, 'CastType> (source) = ObservableExtensions.Cast<'T, 'CastType> (source)
+let inline cast<'T, 'CastType> (source) = ObservableExtensions.Cast<'T, 'CastType>(source)
 
 /// <summary>
 /// Adds an error handler to an observable sequence.
@@ -60,7 +60,7 @@ let inline mapi ([<InlineIfLambda>] f : int -> 'T -> 'R) source = ObservableExte
 /// Merges two observable sequences into one observable sequence
 let inline merge (source1, source2) = ObservableExtensions.Merge (source1, source2)
 
-let inline ofType<'T, 'R> (source) = ObservableExtensions.OfType<'T, 'R> (source)
+let inline ofType<'T, 'R> (source) = ObservableExtensions.OfType<'T, 'R>(source)
 
 /// Returns an observable sequence that contains only a single element
 let inline singleton item = Observable.Return<'T> item

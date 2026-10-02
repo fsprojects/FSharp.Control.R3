@@ -327,7 +327,7 @@ let dotnetBuild ctx =
         sln
 
 let fsharpAnalyzers _ =
-    let argParser = ArgumentParser.Create<FSharpAnalyzers.Arguments> (programName = "fsharp-analyzers")
+    let argParser = ArgumentParser.Create<FSharpAnalyzers.Arguments>(programName = "fsharp-analyzers")
 
     !!srcGlob
     |> Seq.iter (fun proj ->
