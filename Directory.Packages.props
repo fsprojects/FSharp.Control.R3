@@ -1,6 +1,5 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="altcover" Version="9.0.102" />
     <PackageVersion Include="Argu" Version="6.2.5" />
     <PackageVersion Include="BinaryDefense.FSharp.Analyzers.Hashing" Version="0.2.2" />
     <PackageVersion Include="Fake.Api.GitHub" Version="6.1.4" />
@@ -17,8 +16,7 @@
     <PackageVersion Include="FSharp.Compiler.Service" Version="43.12.204" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
-    <PackageVersion Include="MSTest.TestAdapter" Version="4.2.3" />
-    <PackageVersion Include="MSTest.TestFramework" Version="4.2.3" />
+    <PackageVersion Include="MSTest" Version="4.2.3" />
     <PackageVersion Include="NuGet.Common" Version="7.6.0" />
     <PackageVersion Include="NuGet.Protocol" Version="7.6.0" />
     <PackageVersion Include="NuGet.Packaging" Version="7.6.0" />
