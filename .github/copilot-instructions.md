@@ -30,7 +30,6 @@
 * [`R3`](https://github.com/Cysharp/R3) – core reactive primitives
 * [`MSTest`](https://github.com/microsoft/testfx) – test framework
 * [`Unquote`](https://github.com/SwensenSoftware/unquote) – expressive assertions for complex checks
-* [`altcover`](https://github.com/SteveGilham/altcover) – coverage instrumentation in test workflows
 * [`FAKE`](https://fake.build/) – build and release scripting
 
 ## F# Coding Guidelines

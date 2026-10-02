@@ -40,7 +40,7 @@ or
 
 - `CONFIGURATION` will set the [configuration](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build?tabs=netcore2x#options) of the dotnet commands.  If not set, it will default to Release.
   - `CONFIGURATION=Debug ./build.sh` will result in `-c` additions to commands such as in `dotnet build -c Debug`
-- `ENABLE_COVERAGE` Will enable running code coverage metrics.  AltCover can have [severe performance degradation](https://github.com/SteveGilham/altcover/issues/57) so code coverage evaluation are disabled by default to speed up the feedback loop.
+- `ENABLE_COVERAGE` Will enable running code coverage metrics with the Microsoft.Testing.Platform code coverage extension (`dotnet test --coverage`). Code coverage evaluation is disabled by default to speed up the feedback loop.
   - `ENABLE_COVERAGE=1 ./build.sh` will enable code coverage evaluation
 
 
@@ -76,7 +76,7 @@ src/FSharp.Control.R3/bin/
 - `DotnetRestore` - Runs [dotnet restore](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore?tabs=netcore2x) on the [solution file](https://docs.microsoft.com/en-us/visualstudio/extensibility/internals/solution-dot-sln-file?view=vs-2019).
 - [`DotnetBuild`](#Building) - Runs [dotnet build](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build?tabs=netcore2x) on the [solution file](https://docs.microsoft.com/en-us/visualstudio/extensibility/internals/solution-dot-sln-file?view=vs-2019).
 - `FSharpAnalyzers` - Runs [BinaryDefense.FSharp.Analyzers](https://github.com/BinaryDefense/BinaryDefense.FSharp.Analyzers).
-- `DotnetTest` - Runs [dotnet test](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test?tabs=netcore21) on the [solution file](https://docs.microsoft.com/en-us/visualstudio/extensibility/internals/solution-dot-sln-file?view=vs-2019).
+- `DotnetTest` - Runs [dotnet test](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-test) on each test project with [Microsoft.Testing.Platform](https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-intro).
 - `GenerateCoverageReport` - Code coverage is run during `DotnetTest` and this generates a report via [ReportGenerator](https://github.com/danielpalme/ReportGenerator).
 - `ShowCoverageReport` - Shows the report generated in `GenerateCoverageReport`.
 - `WatchTests` - Runs [dotnet watch](https://docs.microsoft.com/en-us/aspnet/core/tutorials/dotnet-watch?view=aspnetcore-3.0) with the test projects. Useful for rapid feedback loops.
