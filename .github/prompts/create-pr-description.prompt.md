@@ -39,6 +39,7 @@ Analyze the current branch's git diff and commit history relative to the remote 
 - Use plain English; avoid vague filler phrases like "various improvements".
 - Do not start the summary with "This branch adds".
 - Use only en dashes (`–`) for dashes; never use em dashes (`—`).
+- Always wrap names and versions into backticks (for example, `ImmutableList`) when referring to them in the description.
 - Preserve all original template headings, checkbox syntax, and section order exactly.
 
 ## Output
