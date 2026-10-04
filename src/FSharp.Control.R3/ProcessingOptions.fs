@@ -5,23 +5,30 @@ open System.Threading
 open System.Threading.Tasks
 open R3
 
+/// <summary>
+/// Defines how an asynchronous selector processes source elements that arrive while a previous invocation is still running.
+/// <para>
+/// The cases carry the <c>Await</c> prefix so that they never collide with other names opened next to
+/// <see cref="N:FSharp.Control.R3"/>, such as <see cref="T:System.Threading.Tasks.Parallel"/>.
+/// </para>
+/// </summary>
 type AwaitOperationConfiguration =
     /// <summary>All values are queued, and the next value waits for the completion of the asynchronous method.</summary>
-    | Sequential
+    | AwaitSequential
     /// <summary>Drop new value when async operation is running.</summary>
-    | Drop
+    | AwaitDrop
     /// <summary>If the previous asynchronous method is running, it is cancelled and the next asynchronous method is executed.</summary>
-    | Switch
+    | AwaitSwitch
     /// <summary>All values are sent immediately to the asynchronous method.</summary>
-    | Parallel of
+    | AwaitParallel of
         /// If set to -1, there is no limit.
         MaxConcurrent : int
     /// <summary>All values are sent immediately to the asynchronous method, but the results are queued and passed to the next operator in order.</summary>
-    | SequentialParallel of
+    | AwaitSequentialParallel of
         /// If set to -1, there is no limit.
         MaxConcurrent : int
     /// <summary>Send the first value and the last value while the asynchronous method is running.</summary>
-    | ThrottleFirstLast
+    | AwaitThrottleFirstLast
 
 type ProcessingOptions = {
     AwaitOperationConfiguration : AwaitOperationConfiguration
@@ -30,13 +37,13 @@ type ProcessingOptions = {
 } with
 
     static let ``default`` = {
-        AwaitOperationConfiguration = AwaitOperationConfiguration.Sequential
+        AwaitOperationConfiguration = AwaitOperationConfiguration.AwaitSequential
         ConfigureAwait = true
         CancelOnCompleted = false
     }
 
     static let ``parallel`` = {
-        AwaitOperationConfiguration = AwaitOperationConfiguration.Parallel -1
+        AwaitOperationConfiguration = AwaitOperationConfiguration.AwaitParallel -1
         ConfigureAwait = true
         CancelOnCompleted = false
     }
@@ -46,21 +53,21 @@ type ProcessingOptions = {
 
     member this.MaxConcurrent =
         match this.AwaitOperationConfiguration with
-        | AwaitOperationConfiguration.Sequential -> -1
-        | AwaitOperationConfiguration.Drop -> -1
-        | AwaitOperationConfiguration.Switch -> -1
-        | AwaitOperationConfiguration.Parallel maxConcurrent -> maxConcurrent
-        | AwaitOperationConfiguration.SequentialParallel maxConcurrent -> maxConcurrent
-        | AwaitOperationConfiguration.ThrottleFirstLast -> -1
+        | AwaitOperationConfiguration.AwaitSequential -> -1
+        | AwaitOperationConfiguration.AwaitDrop -> -1
+        | AwaitOperationConfiguration.AwaitSwitch -> -1
+        | AwaitOperationConfiguration.AwaitParallel maxConcurrent -> maxConcurrent
+        | AwaitOperationConfiguration.AwaitSequentialParallel maxConcurrent -> maxConcurrent
+        | AwaitOperationConfiguration.AwaitThrottleFirstLast -> -1
 
     member this.AwaitOperation =
         match this.AwaitOperationConfiguration with
-        | AwaitOperationConfiguration.Sequential -> AwaitOperation.Sequential
-        | AwaitOperationConfiguration.Drop -> AwaitOperation.Drop
-        | AwaitOperationConfiguration.Switch -> AwaitOperation.Switch
-        | AwaitOperationConfiguration.Parallel _ -> AwaitOperation.Parallel
-        | AwaitOperationConfiguration.SequentialParallel _ -> AwaitOperation.SequentialParallel
-        | AwaitOperationConfiguration.ThrottleFirstLast -> AwaitOperation.ThrottleFirstLast
+        | AwaitOperationConfiguration.AwaitSequential -> AwaitOperation.Sequential
+        | AwaitOperationConfiguration.AwaitDrop -> AwaitOperation.Drop
+        | AwaitOperationConfiguration.AwaitSwitch -> AwaitOperation.Switch
+        | AwaitOperationConfiguration.AwaitParallel _ -> AwaitOperation.Parallel
+        | AwaitOperationConfiguration.AwaitSequentialParallel _ -> AwaitOperation.SequentialParallel
+        | AwaitOperationConfiguration.AwaitThrottleFirstLast -> AwaitOperation.ThrottleFirstLast
 
 type ChunkConfiguration<'T> =
     | ChunkCount of WindowLength : int
