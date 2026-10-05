@@ -15,7 +15,7 @@
 ├── src/FSharp.Control.R3/          – main library
 │   ├── AssemblyInfo.fs             – assembly metadata
 │   ├── ProcessingOptions.fs        – processing and chunk configuration
-│   ├── Observable.fs               – observable wrappers/extensions
+│   ├── Observable.fs               – observable operators and the `rxquery` builder
 │   ├── ObservableOption.fs         – `option` variants of the `Observable` functions (`choose`)
 │   ├── ObservableFactories.fs      – factories reachable as `Observable.xxx` (`ofSeq`)
 │   ├── AsyncObservable.fs          – async observable helpers
