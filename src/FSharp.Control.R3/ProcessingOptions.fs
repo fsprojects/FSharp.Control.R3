@@ -21,11 +21,11 @@ type AwaitOperationConfiguration =
     | AwaitSwitch
     /// <summary>All values are sent immediately to the asynchronous method.</summary>
     | AwaitParallel of
-        /// If set to -1, there is no limit.
+        /// Maximum number of concurrent invocations; -1 means no limit, otherwise it must be greater than 0.
         MaxConcurrent : int
     /// <summary>All values are sent immediately to the asynchronous method, but the results are queued and passed to the next operator in order.</summary>
     | AwaitSequentialParallel of
-        /// If set to -1, there is no limit.
+        /// Maximum number of concurrent invocations; -1 means no limit, otherwise it must be greater than 0.
         MaxConcurrent : int
     /// <summary>Send the first value and the last value while the asynchronous method is running.</summary>
     | AwaitThrottleFirstLast
@@ -68,6 +68,20 @@ type ProcessingOptions = {
         | AwaitOperationConfiguration.AwaitParallel _ -> AwaitOperation.Parallel
         | AwaitOperationConfiguration.AwaitSequentialParallel _ -> AwaitOperation.SequentialParallel
         | AwaitOperationConfiguration.AwaitThrottleFirstLast -> AwaitOperation.ThrottleFirstLast
+
+    /// <summary>
+    /// Throws <see cref="T:System.ArgumentOutOfRangeException"/> when a parallel configuration has an invalid concurrency limit.
+    /// <para>
+    /// R3 validates the limit only when the mapped sequence is subscribed, far away from the code that built the options,
+    /// so the operators that accept the options validate them eagerly.
+    /// </para>
+    /// </summary>
+    member internal this.Validate (paramName : string) =
+        match this.AwaitOperationConfiguration with
+        | AwaitOperationConfiguration.AwaitParallel maxConcurrent
+        | AwaitOperationConfiguration.AwaitSequentialParallel maxConcurrent when maxConcurrent = 0 || maxConcurrent < -1 ->
+            raise (ArgumentOutOfRangeException (paramName, maxConcurrent, "MaxConcurrent must be -1 (no limit) or greater than 0."))
+        | _ -> ()
 
 type ChunkConfiguration<'T> =
     | ChunkCount of WindowLength : int

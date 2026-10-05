@@ -37,8 +37,10 @@ module Observable =
     /// Returns the length of the observable sequence till its completion or cancellation
     let length cancellationToken source = ObservableExtensions.CountAsync (source, cancellationToken)
 
-    /// Maps the given observable with the given asynchronous function
+    /// <summary>Maps the given observable with the given asynchronous function</summary>
+    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
     let mapAsync (options : ProcessingOptions) (f : CancellationToken -> 'T -> Task<'R>) source =
+        options.Validate (nameof options)
         let selector x ct = ValueTask<'R>(f ct x)
         ObservableExtensions.SelectAwait (
             source,
@@ -57,6 +59,7 @@ module Observable =
     /// This method can be used for debugging, logging, etc. of query behavior
     /// by intercepting the message stream to run arbitrary actions for messages on the pipeline.
     /// </remarks>
+    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
     let iterAsync cancellationToken options (action : CancellationToken -> 't -> Task<unit>) source =
         source
         |> mapAsync options action
