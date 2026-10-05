@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Breaking:** `AwaitOperationConfiguration` cases are prefixed with `Await` (`AwaitSequential`, `AwaitParallel 4`, ...) so they no longer collide with `System.Threading.Tasks.Parallel`
+- **Breaking:** the `Async` `toLookup` overloads no longer take a `cancellationToken`; they observe the token of the computation
 - **Breaking:** the `OptionExtensions`/`ValueOptionExtensions` types are replaced by `Observable.choose`, which takes a `voption` chooser, and `ObservableOption.choose` for `option`; the `Observable.Extensions` type is replaced by `Observable.ofSeq`
 - **Breaking:** after `open FSharp.Control.R3`, `Observable.choose` is the R3 function, like `Observable.map` and `Observable.filter` already were; use `Microsoft.FSharp.Control.Observable.choose` for `IObservable` and F# events
 - **Breaking:** after `open FSharp.Control.R3`, the bare type name `Observable` refers to `FSharp.Control.R3.ObservableFactories.Observable`; write `open type R3.Observable` and extend `R3.Observable` by its full name
@@ -28,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `rxquery` emitted its elements on the thread pool, out of order and after the source had moved on; `yield` and `zero` are now synchronous
 - `rxquery` `sumBy` passed `null` to the `(+)` of reference types
+- A positional comparer or element selector passed to the `Async` `toLookup` was silently ignored
 - `chunkBy` accepted a non-positive window length of `ChunkTimeSpanCount` and `ChunkMillisecondsCount`, which failed every element
 - Misleading XML docs of `catch`
 
