@@ -16,6 +16,7 @@
 │   ├── AssemblyInfo.fs             – assembly metadata
 │   ├── ProcessingOptions.fs        – processing configuration helpers
 │   ├── Observable.fs               – observable wrappers/extensions
+│   ├── ObservableFactories.fs      – factories reachable as `Observable.xxx` (`ofSeq`)
 │   ├── AsyncObservable.fs          – async observable helpers
 │   └── TaskObservable.fs           – task-based observable helpers
 ├── tests/FSharp.Control.R3.Tests/  – MSTest test project
