@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Integration tests covering every public function against real R3 pipelines ([#11](https://github.com/fsprojects/FSharp.Control.R3/issues/11))
 - `Observable.choose` as a function of the `Observable` module; like every function of the library that works with optional values it takes a `voption` chooser, and the `option` variant is `ObservableOption.choose`
 - `Observable.ofSeq (items)` and `Observable.ofSeq (items, cancellationToken)`, reachable after `open FSharp.Control.R3`
 - `Observable.chunkByBoundaries` accepting window boundaries of any element type
