@@ -7,7 +7,7 @@ open FSharp.Control.R3.Observable.Builders
 open Microsoft.VisualStudio.TestTools.UnitTesting
 open Swensen.Unquote
 
-[<TestClass>]
+[<TestClass; BuilderTestCategory>]
 type BuilderTests () =
 
     [<TestMethod>]
