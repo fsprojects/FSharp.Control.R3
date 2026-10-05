@@ -14,6 +14,7 @@
   <ItemGroup>
     <Compile Include="TestCategories.fs" />
     <Compile Include="TestHelpers.fs" />
+    <Compile Include="ProcessingOptionsTests.fs" />
     <Compile Include="BuilderTests.fs" />
     <Compile Include="ObservableTests.fs" />
   </ItemGroup>
