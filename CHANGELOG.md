@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Observable.ofSeq (items)` and `Observable.ofSeq (items, cancellationToken)`, reachable after `open FSharp.Control.R3`
 - `Observable.chunkByBoundaries` accepting window boundaries of any element type
 - `rxqueryWith cancellationToken` and `RxQueryBuilder (cancellationToken)` to cancel the query operators that return a task
-- XML documentation for every public API
+- XML documentation for every public API, including the R3 1.3.1 limitations of `bind`, `catch` and `mapAsync`
 
 ### Changed
 
