@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `rxquery` emitted its elements on the thread pool, out of order and after the source had moved on; `yield` and `zero` are now synchronous
 - `rxquery` `sumBy` passed `null` to the `(+)` of reference types
 - `chunkBy` accepted a non-positive window length of `ChunkTimeSpanCount` and `ChunkMillisecondsCount`, which failed every element
+- Misleading XML docs of `catch`
 
 ## [0.3.1] - 2026-01-28
 
