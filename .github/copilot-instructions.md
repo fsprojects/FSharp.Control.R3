@@ -21,10 +21,17 @@
 │   ├── IterationGuard.fs           – internal guard that stops `iterAsync` and reports its failures
 │   ├── AsyncObservable.fs          – Async flavour (cold `Async` terminals, `mapAsync`, `ofAsync`)
 │   └── TaskObservable.fs           – Task flavour (hot `Task` terminals, `mapAsync`, `ofTask`)
-├── tests/FSharp.Control.R3.Tests/  – MSTest test project
+├── tests/FSharp.Control.R3.Tests/  – MSTest integration test project
 │   ├── TestCategories.fs           – test category attributes for `--filter TestCategory=...`
-│   ├── BuilderTests.fs             – builder behavior tests
-│   └── ObservableTests.fs          – observable behavior tests
+│   ├── TestHelpers.fs              – deterministic sources, recorder, probes, gated selectors
+│   ├── ProcessingOptionsTests.fs   – processing options
+│   ├── ObservableTests.fs          – observable operators and factories
+│   ├── ChunkTests.fs               – chunking with `FakeTimeProvider`
+│   ├── BuilderTests.fs             – `rxquery` builder
+│   ├── AsyncObservableTests.fs     – Async flavour
+│   ├── TaskObservableTests.fs      – Task flavour
+│   ├── MapAsyncTests.fs            – `mapAsync` per await operation, both flavours
+│   └── IntegrationTests.fs         – end-to-end scenarios across the library
 ├── build/                          – FAKE build scripts and release automation
 └── docsSrc/                        – FSharp.Formatting documentation source
 ```
