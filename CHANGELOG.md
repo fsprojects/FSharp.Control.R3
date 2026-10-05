@@ -9,13 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `Observable.choose` as a function of the `Observable` module; like every function of the library that works with optional values it takes a `voption` chooser, and the `option` variant is `ObservableOption.choose`
 - `Observable.ofSeq (items)` and `Observable.ofSeq (items, cancellationToken)`, reachable after `open FSharp.Control.R3`
 - `rxqueryWith cancellationToken` and `RxQueryBuilder (cancellationToken)` to cancel the query operators that return a task
 
 ### Changed
 
 - **Breaking:** `AwaitOperationConfiguration` cases are prefixed with `Await` (`AwaitSequential`, `AwaitParallel 4`, ...) so they no longer collide with `System.Threading.Tasks.Parallel`
-- **Breaking:** the `Observable.Extensions` type is replaced by `Observable.ofSeq`
+- **Breaking:** the `OptionExtensions`/`ValueOptionExtensions` types are replaced by `Observable.choose`, which takes a `voption` chooser, and `ObservableOption.choose` for `option`; the `Observable.Extensions` type is replaced by `Observable.ofSeq`
+- **Breaking:** after `open FSharp.Control.R3`, `Observable.choose` is the R3 function, like `Observable.map` and `Observable.filter` already were; use `Microsoft.FSharp.Control.Observable.choose` for `IObservable` and F# events
 - **Breaking:** after `open FSharp.Control.R3`, the bare type name `Observable` refers to `FSharp.Control.R3.ObservableFactories.Observable`; write `open type R3.Observable` and extend `R3.Observable` by its full name
 - **Breaking:** `rxquery` `sumBy` adds values of the projected type: it requires `(+) : 'Value * 'Value -> 'Value`
 - `mapAsync` and `iterAsync` validate the concurrency limit of the options when they are called

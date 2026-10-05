@@ -16,6 +16,7 @@
 │   ├── AssemblyInfo.fs             – assembly metadata
 │   ├── ProcessingOptions.fs        – processing configuration helpers
 │   ├── Observable.fs               – observable wrappers/extensions
+│   ├── ObservableOption.fs         – `option` variants of the `Observable` functions (`choose`)
 │   ├── ObservableFactories.fs      – factories reachable as `Observable.xxx` (`ofSeq`)
 │   ├── AsyncObservable.fs          – async observable helpers
 │   └── TaskObservable.fs           – task-based observable helpers
