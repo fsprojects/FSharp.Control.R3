@@ -74,32 +74,24 @@ let inline take (count : int) (source) = ObservableExtensions.Take (source, coun
 /// Filters the observable elements of a sequence based on a predicate
 let inline where ([<InlineIfLambda>] f : 'T -> bool) source = ObservableExtensions.Where (source, f)
 
-open System.Runtime.CompilerServices
+// choose is a module function rather than a static member of an extension type: a module function here shadows
+// FSharp.Core's Observable.choose, which would otherwise win the name resolution of Observable.choose.
+// Like every function of the library that works with optional values it takes value options, which do not allocate;
+// the variants that take options live in the ObservableOption module.
 
-[<AutoOpen>]
-module OptionExtensions =
-
-    [<AbstractClass; Sealed; Extension>]
-    type Observable private () =
-
-        /// Applies the given function to each element of the observable. Returns
-        /// a sequence comprised of the results "x" for each element where
-        /// the function returns Some(x)
-        [<Extension>]
-        static member choose f = map f >> where Option.isSome >> map Option.get
-
-[<AutoOpen>]
-module ValueOptionExtensions =
-
-    [<AbstractClass; Sealed; Extension>]
-    type Observable private () =
-
-        /// Applies the given function to each element of the observable. Returns
-        /// a sequence comprised of the results "x" for each element where
-        /// the function returns ValueSome(x)
-        [<Extension>]
-        static member choose f = map f >> where ValueOption.isSome >> map ValueOption.get
-
+/// <summary>
+/// Applies the chooser to each element and emits the values of the <see cref="T:Microsoft.FSharp.Core.FSharpValueOption`1"/> results
+/// that hold one.
+/// <para>
+/// The variant that takes an <see cref="T:Microsoft.FSharp.Core.FSharpOption`1"/> chooser is
+/// <see cref="M:FSharp.Control.R3.ObservableOption.choose``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpOption{``1}},R3.Observable{``0})"/>.
+/// </para>
+/// </summary>
+let inline choose ([<InlineIfLambda>] chooser : 'T -> 'R voption) (source : Observable<'T>) =
+    source
+    |> map chooser
+    |> filter ValueOption.isSome
+    |> map ValueOption.get
 
 /// The <see cref="T:FSharp.Control.R3.Observable.BuildersModule.RxQueryBuilder"/> query builder and its instances.
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
