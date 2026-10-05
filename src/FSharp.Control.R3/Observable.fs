@@ -42,6 +42,19 @@ let inline chunkBy (configuration : ChunkConfiguration<'T>) (source) =
     | ChunkAsyncWindow (asyncWindow, configureAwait) -> ObservableExtensions.Chunk (source, asyncWindow, configureAwait)
     | ChunkWindowBoundaries windowBoundaries -> ObservableExtensions.Chunk (source, windowBoundaries = windowBoundaries)
 
+// ChunkWindowBoundaries reuses the element type of the source for the boundaries, while R3 ignores the boundary values;
+// this function accepts boundaries of any element type, such as Observable<Unit> ticks
+/// <summary>
+/// Divides the source into chunks that end on every element of <paramref name="windowBoundaries"/>.
+/// <para>
+/// A boundary element emits the buffered elements, or an empty chunk when nothing is buffered.
+/// Completion of the source emits the remaining elements; completion of the boundaries, even a failed one,
+/// emits the remaining elements and completes the chunked sequence successfully.
+/// </para>
+/// </summary>
+let inline chunkByBoundaries (windowBoundaries : Observable<'Boundary>) (source : Observable<'T>) =
+    ObservableExtensions.Chunk (source, windowBoundaries = windowBoundaries)
+
 /// Returns an observable sequence that only contains distinct elements
 let inline distinct source = ObservableExtensions.Distinct source
 
