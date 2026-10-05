@@ -13,11 +13,19 @@
 
   <ItemGroup>
     <Compile Include="TestCategories.fs" />
-    <Compile Include="BuilderTests.fs" />
+    <Compile Include="TestHelpers.fs" />
+    <Compile Include="ProcessingOptionsTests.fs" />
     <Compile Include="ObservableTests.fs" />
+    <Compile Include="ChunkTests.fs" />
+    <Compile Include="BuilderTests.fs" />
+    <Compile Include="AsyncObservableTests.fs" />
+    <Compile Include="TaskObservableTests.fs" />
+    <Compile Include="MapAsyncTests.fs" />
+    <Compile Include="IntegrationTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="MSTest" />
     <PackageReference Include="Unquote" />
   </ItemGroup>
