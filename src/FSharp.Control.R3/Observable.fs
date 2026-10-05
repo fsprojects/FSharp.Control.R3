@@ -131,8 +131,10 @@ module Builders =
         member _.SkipWhile (s : Observable<_>, [<ProjectionParameter>] predicate : _ -> bool) = s.SkipWhile (predicate)
         [<CustomOperation("skip", MaintainsVariableSpace = true, AllowIntoPattern = true)>]
         member _.Skip (s : Observable<_>, count : int) = s.Skip (count)
-        member _.Zero () = Observable.Empty (TimeProvider.System)
-        member _.Yield (value) = Observable.Return (value, TimeProvider.System)
+        // Zero and Yield emit synchronously on subscription: scheduling them on TimeProvider.System hopped every element of
+        // a query to the thread pool, so SelectMany merged them in arbitrary order and the results arrived late
+        member _.Zero () : Observable<'T> = Observable.Empty<'T>()
+        member _.Yield (value : 'T) = Observable.Return<'T> value
         [<CustomOperation("count")>]
         member _.Count (s : Observable<_>) = ObservableExtensions.CountAsync (s)
         [<CustomOperation("all")>]
