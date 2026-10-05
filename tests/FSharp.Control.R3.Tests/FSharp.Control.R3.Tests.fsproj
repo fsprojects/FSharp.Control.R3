@@ -21,6 +21,7 @@
     <Compile Include="AsyncObservableTests.fs" />
     <Compile Include="TaskObservableTests.fs" />
     <Compile Include="MapAsyncTests.fs" />
+    <Compile Include="IntegrationTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
