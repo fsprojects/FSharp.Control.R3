@@ -17,6 +17,10 @@ let inline asObservable source : Observable<'Source> = ObservableExtensions.AsOb
 /// The result completes when the source and every inner sequence have completed. It fails when the source fails,
 /// or when an inner sequence fails while the source is still running.
 /// </para>
+/// <para>
+/// R3 1.3.1 ignores the failure of an inner sequence that fails after the source completed: the result then completes successfully
+/// with the remaining inner sequences, or never completes when the failed one was the last one running.
+/// </para>
 /// </summary>
 let inline bind ([<InlineIfLambda>] f : 'T -> Observable<'TNext>) source = ObservableExtensions.SelectMany (source, f)
 
@@ -40,6 +44,10 @@ let inline cast<'T, 'CastType> (source) = ObservableExtensions.Cast<'T, 'CastTyp
 /// or <see cref="M:FSharp.Control.R3.Observable.filter``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},R3.Observable{``0})"/>,
 /// pass through without reaching the handler.
 /// A handler whose argument type is not annotated handles every exception.
+/// </para>
+/// <para>
+/// In R3 1.3.1, disposing the result after it switched to the sequence of the handler does not unsubscribe from that sequence:
+/// it stays subscribed until it completes by itself, while its elements are no longer delivered.
 /// </para>
 /// </summary>
 let inline catch ([<InlineIfLambda>] f : 'Exn -> Observable<'T>) o = ObservableExtensions.Catch (o, f)
