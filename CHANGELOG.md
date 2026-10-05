@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Observable.ofSeq (items)` and `Observable.ofSeq (items, cancellationToken)`, reachable after `open FSharp.Control.R3`
 - `Observable.chunkByBoundaries` accepting window boundaries of any element type
 - `rxqueryWith cancellationToken` and `RxQueryBuilder (cancellationToken)` to cancel the query operators that return a task
+- XML documentation for every public API
 
 ### Changed
 
@@ -36,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `iterAsync` kept invoking the action after it failed when the source emitted synchronously, invoked it although the token was already cancelled, completed successfully when the action failed after the source completed, and never completed when the action threw an `OperationCanceledException` of its own, such as a timeout
 - `iterAsync` could fault with `OverflowException` on sources with more than `Int32.MaxValue` elements
 - `chunkBy` accepted a non-positive window length of `ChunkTimeSpanCount` and `ChunkMillisecondsCount`, which failed every element
-- Misleading XML docs of `catch` and `iterAsync`
+- Misleading XML docs of `catch`, `length`, `existsAsync`, `iter`, `iterAsync`, `aggregate` and the "blocking" module remarks
 
 ## [0.3.1] - 2026-01-28
 
