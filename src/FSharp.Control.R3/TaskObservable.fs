@@ -1,3 +1,7 @@
+/// <summary>
+/// The Task flavour: functions that consume observable sequences as <see cref="T:System.Threading.Tasks.Task`1"/> values
+/// and asynchronous operators built on tasks.
+/// </summary>
 module FSharp.Control.R3.Task
 
 open System
@@ -6,39 +10,64 @@ open System.Threading.Tasks
 open R3
 open FSharp.Control.R3
 
-/// <remarks>Caution! All functions returning <see cref="Task"/>/<see cref="Task`1"/> are blocking and may never return if awaited</remarks>
+/// <summary>
+/// Functions that consume an observable sequence as a <see cref="T:System.Threading.Tasks.Task`1"/>.
+/// <para>
+/// The functions that return a task subscribe when they are called, so elements that a hot source emitted before the call are missed,
+/// and their tasks complete when the deciding element arrives or the source terminates, which for an endless source may be never.
+/// <see cref="M:FSharp.Control.R3.Task.Observable.mapAsync``2(FSharp.Control.R3.ProcessingOptions,Microsoft.FSharp.Core.FSharpFunc{System.Threading.CancellationToken,Microsoft.FSharp.Core.FSharpFunc{``0,System.Threading.Tasks.Task{``1}}},R3.Observable{``0})"/>
+/// is an operator instead: it returns an observable sequence and subscribes only when that sequence is subscribed.
+/// </para>
+/// <para>
+/// A failure of the source, including an error reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>,
+/// faults the task with the original exception. Cancelling the token disposes the subscription and cancels the task.
+/// </para>
+/// </summary>
 module Observable =
 
-    /// Applies an accumulator function over an observable sequence, returning the
-    /// result of the aggregation as a single element in the result sequence
+    /// Applies the accumulator to every element, starting from the seed, and returns the final accumulated value;
+    /// the seed when the source has no element.
     let inline aggregate cancellationToken seed ([<InlineIfLambda>] f : 'R -> 'T -> 'R) source =
         ObservableExtensions.AggregateAsync (source, seed, f, cancellationToken)
 
-    /// Determines whether all elements of an observable satisfy a predicate
+    /// Determines whether every element satisfies the predicate; returns false at the first element that does not,
+    /// true when the source completes.
     let inline all cancellationToken ([<InlineIfLambda>] f : 'T -> bool) source = ObservableExtensions.AllAsync (source, f, cancellationToken)
 
     /// <summary>
-    /// Invokes an action for each element in the observable sequence, and propagates all observer
-    /// messages through the result sequence.
+    /// Subscribes to the source and invokes the action for every element.
+    /// <para>
+    /// The task completes when the source completes. An exception thrown by the action, or an error of the source,
+    /// stops the processing and faults the task.
+    /// </para>
     /// </summary>
-    /// <remarks>
-    /// This method can be used for debugging, logging, etc. of query behavior
-    /// by intercepting the message stream to run arbitrary actions for messages on the pipeline.
-    /// </remarks>
     let inline iter cancellationToken ([<InlineIfLambda>] action : 'T -> unit) source =
         ObservableExtensions.ForEachAsync (source, action, cancellationToken)
 
-    /// Determines whether an observable sequence contains a specified value
-    /// which satisfies the given predicate
+    /// Determines whether the source has any element; returns true at the first element,
+    /// false when the source completes without one.
     let inline existsAsync cancellationToken source = ObservableExtensions.AnyAsync (source, cancellationToken)
 
-    /// Returns the first element of an observable sequence
+    /// <summary>
+    /// Returns the first element of the source.
+    /// Faults with <see cref="T:System.InvalidOperationException"/> when the source completes without an element.
+    /// </summary>
     let inline firstAsync cancellationToken source = ObservableExtensions.FirstAsync (source, cancellationToken)
 
-    /// Returns the length of the observable sequence till its completion or cancellation
+    /// Returns the number of elements of the source once it completes.
     let length cancellationToken source = ObservableExtensions.CountAsync (source, cancellationToken)
 
-    /// <summary>Maps the given observable with the given asynchronous function</summary>
+    /// <summary>
+    /// Projects every element with the asynchronous function, processing elements that arrive while a previous invocation
+    /// is running as defined by <paramref name="options"/>.
+    /// <para>
+    /// The function receives a cancellation token that is cancelled when the subscription is disposed,
+    /// when the source fails, with <see cref="P:FSharp.Control.R3.AwaitOperationConfiguration.AwaitSwitch"/> when the next element arrives,
+    /// or, with <see cref="P:FSharp.Control.R3.ProcessingOptions.CancelOnCompleted"/>, when the source completes.
+    /// An exception of the function is reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>
+    /// and the sequence continues.
+    /// </para>
+    /// </summary>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
     let mapAsync (options : ProcessingOptions) (f : CancellationToken -> 'T -> Task<'R>) source =
         options.Validate (nameof options)
@@ -116,12 +145,18 @@ module Observable =
         return List.ofArray array
     }
 
+/// <summary>
+/// Overloaded functions of the Task flavour, reachable through the type name <c>Observable</c>, such as
+/// <see cref="M:FSharp.Control.R3.Task.Extensions.Observable.ofTask``1(Microsoft.FSharp.Core.FSharpFunc{System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{``0}},System.Boolean)"/>,
+/// after opening <see cref="T:FSharp.Control.R3.Task"/>.
+/// </summary>
 [<AutoOpen>]
 module Extensions =
 
     open System.Collections.Generic
     open System.Runtime.InteropServices
 
+    /// Overloaded functions of the Task flavour.
     [<AbstractClass; Sealed>]
     type Observable private () =
 
@@ -151,9 +186,11 @@ module Extensions =
             =
             Observable.FromAsync (asyncFactory, configureAwait)
 
+        /// Groups the elements of the source by key once it completes.
         static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key, [<Optional>] cancellationToken : CancellationToken) =
             ObservableExtensions.ToLookupAsync (source, keySelector, cancellationToken)
 
+        /// Groups the elements of the source by key, compared with the comparer, once it completes.
         static member toLookup
             (
                 source : Observable<'T>,
@@ -164,11 +201,13 @@ module Extensions =
             =
             ObservableExtensions.ToLookupAsync (source, keySelector, keyComparer = keyComparer, cancellationToken = cancellationToken)
 
+        /// Groups the projected elements of the source by key once it completes.
         static member toLookup
             (source : Observable<'T>, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, [<Optional>] cancellationToken : CancellationToken)
             =
             ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector = elementSelector, cancellationToken = cancellationToken)
 
+        /// Groups the projected elements of the source by key, compared with the comparer, once it completes.
         static member toLookup
             (
                 source : Observable<'T>,
