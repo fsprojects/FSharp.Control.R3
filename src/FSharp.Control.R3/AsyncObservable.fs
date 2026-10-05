@@ -129,7 +129,21 @@ module Observable =
     /// when the source fails, with <see cref="P:FSharp.Control.R3.AwaitOperationConfiguration.AwaitSwitch"/> when the next element arrives,
     /// or, with <see cref="P:FSharp.Control.R3.ProcessingOptions.CancelOnCompleted"/>, when the source completes.
     /// An exception raised by the computation is reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>
-    /// and the sequence continues.
+    /// and the sequence continues, with these exceptions in R3 1.3.1:
+    /// </para>
+    /// <list type="bullet">
+    /// <item><description>an exception that happens after the source completed is dropped, and the sequence completes successfully without it;</description></item>
+    /// <item><description>
+    /// an <see cref="T:System.OperationCanceledException"/> is never reported: it drops the element with
+    /// <see cref="P:FSharp.Control.R3.AwaitOperationConfiguration.AwaitDrop"/>, <see cref="P:FSharp.Control.R3.AwaitOperationConfiguration.AwaitSwitch"/>
+    /// and <see cref="T:FSharp.Control.R3.AwaitOperationConfiguration.AwaitParallel"/>, and stops the sequence without completing it
+    /// with the other configurations;
+    /// </description></item>
+    /// <item><description>with a limited <see cref="T:FSharp.Control.R3.AwaitOperationConfiguration.AwaitSequentialParallel"/>, every exception permanently takes up one of the slots.</description></item>
+    /// </list>
+    /// <para>
+    /// <see cref="M:FSharp.Control.R3.Async.Observable.iterAsync``1(FSharp.Control.R3.ProcessingOptions,Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Control.FSharpAsync{Microsoft.FSharp.Core.Unit}},R3.Observable{``0})"/>
+    /// is not affected by these limitations.
     /// </para>
     /// </summary>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
