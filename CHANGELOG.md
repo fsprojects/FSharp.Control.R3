@@ -22,11 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** after `open FSharp.Control.R3`, the bare type name `Observable` refers to `FSharp.Control.R3.ObservableFactories.Observable`; write `open type R3.Observable` and extend `R3.Observable` by its full name
 - **Breaking:** `rxquery` `sumBy` adds values of the projected type: it requires `(+) : 'Value * 'Value -> 'Value`
 - `mapAsync` and `iterAsync` validate the concurrency limit of the options when they are called
+- `chunkBySize` and `chunkBy` validate every chunk length when they are called and report the parameter and the rejected value
 
 ### Fixed
 
 - `rxquery` emitted its elements on the thread pool, out of order and after the source had moved on; `yield` and `zero` are now synchronous
 - `rxquery` `sumBy` passed `null` to the `(+)` of reference types
+- `chunkBy` accepted a non-positive window length of `ChunkTimeSpanCount` and `ChunkMillisecondsCount`, which failed every element
 
 ## [0.3.1] - 2026-01-28
 
