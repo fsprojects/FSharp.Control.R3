@@ -31,9 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `rxquery` emitted its elements on the thread pool, out of order and after the source had moved on; `yield` and `zero` are now synchronous
 - `rxquery` `sumBy` passed `null` to the `(+)` of reference types
 - A positional comparer or element selector passed to the `Async` `toLookup` was silently ignored
+- `iterAsync` kept invoking the action after it failed when the source emitted synchronously, invoked it although the token was already cancelled, completed successfully when the action failed after the source completed, and never completed when the action threw an `OperationCanceledException` of its own, such as a timeout
 - `iterAsync` could fault with `OverflowException` on sources with more than `Int32.MaxValue` elements
 - `chunkBy` accepted a non-positive window length of `ChunkTimeSpanCount` and `ChunkMillisecondsCount`, which failed every element
-- Misleading XML docs of `catch`
+- Misleading XML docs of `catch` and `iterAsync`
 
 ## [0.3.1] - 2026-01-28
 

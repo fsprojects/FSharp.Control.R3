@@ -1,8 +1,9 @@
 module FSharp.Control.R3.Task
 
-open R3
+open System
 open System.Threading
 open System.Threading.Tasks
+open R3
 open FSharp.Control.R3
 
 /// <remarks>Caution! All functions returning <see cref="Task"/>/<see cref="Task`1"/> are blocking and may never return if awaited</remarks>
@@ -52,19 +53,56 @@ module Observable =
         )
 
     /// <summary>
-    /// Invokes an asynchronous action for each element in the observable sequence, and propagates all observer
-    /// messages through the result sequence.
+    /// Subscribes to the source and invokes the asynchronous action for the elements, processing elements that arrive
+    /// while a previous invocation is running as defined by <paramref name="options"/>.
+    /// <para>
+    /// Depending on the options, not every element reaches the action: <see cref="P:FSharp.Control.R3.AwaitOperationConfiguration.AwaitDrop"/>
+    /// and <see cref="P:FSharp.Control.R3.AwaitOperationConfiguration.AwaitThrottleFirstLast"/> skip elements.
+    /// The task completes when the source and the running actions complete; with
+    /// <see cref="P:FSharp.Control.R3.ProcessingOptions.CancelOnCompleted"/> it completes as soon as the source completes,
+    /// the running actions are cancelled without being awaited, and the queued elements never reach the action.
+    /// </para>
+    /// <para>
+    /// The first exception of the action, including an <see cref="T:System.OperationCanceledException"/> that the token passed to it
+    /// did not cause, stops the processing at once, also over a source that emits synchronously, and the task fails with that exception.
+    /// An error of the source faults the task too. An already cancelled token cancels the task without subscribing.
+    /// </para>
     /// </summary>
-    /// <remarks>
-    /// This method can be used for debugging, logging, etc. of query behavior
-    /// by intercepting the message stream to run arbitrary actions for messages on the pipeline.
-    /// </remarks>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
-    let iterAsync cancellationToken options (action : CancellationToken -> 't -> Task<unit>) source =
-        // Waits through iter: waiting through length counted the elements with a checked add, which overflows on long-lived sources
-        source
-        |> mapAsync options action
-        |> iter cancellationToken ignore
+    let iterAsync
+        (cancellationToken : CancellationToken)
+        (options : ProcessingOptions)
+        (action : CancellationToken -> 't -> Task<unit>)
+        (source : Observable<'t>)
+        : Task =
+        options.Validate (nameof options)
+        if cancellationToken.IsCancellationRequested then
+            // The guard would already skip every action; the shortcut keeps the iteration from subscribing at all
+            Task.FromCanceled cancellationToken
+        else
+            let guard = IterationGuard cancellationToken
+            let guardedAction ct value : Task<unit> = task {
+                if not guard.IsStopped then
+                    try
+                        do! action ct value
+                    with
+                    | :? OperationCanceledException when ct.IsCancellationRequested ->
+                        // R3 cancelled this invocation (switch, cancel on completion, disposal), which is not a failure of the iteration
+                        ()
+                    | error ->
+                        // Not rethrown: the guard stops the iteration and reports the failure itself (see IterationGuard)
+                        guard.Fail error
+            }
+            // Waits through iter: waiting through length counted the elements with a checked add, which overflows on long-lived sources
+            let iteration =
+                source
+                |> mapAsync options guardedAction
+                |> _.TakeUntil(guard.StopToken)
+                |> iter cancellationToken ignore
+            task {
+                do! iteration
+                guard.ThrowIfFailed ()
+            }
 
 [<AutoOpen>]
 module Extensions =
