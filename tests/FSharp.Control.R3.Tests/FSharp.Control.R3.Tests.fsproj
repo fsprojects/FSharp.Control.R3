@@ -19,6 +19,7 @@
     <Compile Include="ChunkTests.fs" />
     <Compile Include="BuilderTests.fs" />
     <Compile Include="AsyncObservableTests.fs" />
+    <Compile Include="TaskObservableTests.fs" />
     <Compile Include="MapAsyncTests.fs" />
   </ItemGroup>
 
