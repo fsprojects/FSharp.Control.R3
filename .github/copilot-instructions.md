@@ -18,6 +18,7 @@
 │   ├── Observable.fs               – observable operators and the `rxquery` builder
 │   ├── ObservableOption.fs         – `option` variants of the `Observable` functions (`choose`)
 │   ├── ObservableFactories.fs      – factories reachable as `Observable.xxx` (`ofSeq`)
+│   ├── IterationGuard.fs           – internal guard that stops `iterAsync` and reports its failures
 │   ├── AsyncObservable.fs          – async observable helpers
 │   └── TaskObservable.fs           – task-based observable helpers
 ├── tests/FSharp.Control.R3.Tests/  – MSTest test project
