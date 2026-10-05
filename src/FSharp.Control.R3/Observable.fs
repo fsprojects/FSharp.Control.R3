@@ -22,22 +22,43 @@ let inline catch ([<InlineIfLambda>] f : 'Exn -> Observable<'T>) o = ObservableE
 /// upn the successful termination of the first
 let inline concat first second = ObservableExtensions.Concat (first, second)
 
-///<summary>Divides the input observable sequence into chunks of size at most <c>chunkSize</c>.</summary>
-///<param name="chunkSize">The maximum size of each chunk.</param>
-///<param name="source">The input observable sequence.</param>
-///<returns>The observable sequence divided into chunks.</returns>
-///<exception cref="T:System.ArgumentNullException">Thrown when the input sequence is null.</exception>
-///<exception cref="T:System.ArgumentException">Thrown when <c>chunkSize</c> is not positive.</exception>
-let inline chunkBySize (chunkSize : int) (source) = ObservableExtensions.Chunk (source, chunkSize)
+// R3 validates the length of Chunk(count) with the message as the parameter name and without the value, and does not validate
+// the time-and-count overloads at all: there 0 makes every element fail with an IndexOutOfRangeException through OnErrorResume
+// and a negative length fails only at subscription. The library validates every length itself, the same way.
+let private ensurePositiveLength (paramName : string) (length : int) =
+    if length <= 0 then
+        raise (ArgumentOutOfRangeException (paramName, length, "The chunk length must be positive."))
 
-let inline chunkBy (configuration : ChunkConfiguration<'T>) (source) =
+/// <summary>Divides the source into chunks of at most <paramref name="chunkSize"/> elements.</summary>
+/// <param name="chunkSize">The maximum size of each chunk.</param>
+/// <param name="source">The input observable sequence.</param>
+/// <returns>
+/// The observable sequence divided into chunks. When the source completes, successfully or not,
+/// the remaining elements are emitted as a last, shorter chunk.
+/// </returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="chunkSize"/> is not positive.</exception>
+let chunkBySize (chunkSize : int) (source : Observable<'T>) =
+    ensurePositiveLength (nameof chunkSize) chunkSize
+    ObservableExtensions.Chunk (source, chunkSize)
+
+/// <summary>
+/// Divides the source into chunks as defined by <paramref name="configuration"/>.
+/// When the source completes, the buffered elements are emitted as a last chunk.
+/// </summary>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the window length of the configuration is not positive.</exception>
+let chunkBy (configuration : ChunkConfiguration<'T>) (source : Observable<'T>) =
     match configuration with
-    | ChunkCount count -> ObservableExtensions.Chunk (source, count)
+    | ChunkCount count ->
+        ensurePositiveLength (nameof configuration) count
+        ObservableExtensions.Chunk (source, count)
     | ChunkTimeSpan (timeSpan, timeProvider) -> ObservableExtensions.Chunk (source, timeSpan, timeProvider)
-    | ChunkTimeSpanCount (timeSpan, count, timeProvider) -> ObservableExtensions.Chunk (source, timeSpan, count, timeProvider)
+    | ChunkTimeSpanCount (timeSpan, count, timeProvider) ->
+        ensurePositiveLength (nameof configuration) count
+        ObservableExtensions.Chunk (source, timeSpan, count, timeProvider)
     | ChunkMilliseconds (milliseconds, timeProvider) ->
         ObservableExtensions.Chunk (source, TimeSpan.FromMilliseconds (float milliseconds), timeProvider)
     | ChunkMillisecondsCount (milliseconds, count, timeProvider) ->
+        ensurePositiveLength (nameof configuration) count
         ObservableExtensions.Chunk (source, TimeSpan.FromMilliseconds (float milliseconds), count, timeProvider)
     | ChunkAsyncWindow (asyncWindow, configureAwait) -> ObservableExtensions.Chunk (source, asyncWindow, configureAwait)
     | ChunkWindowBoundaries windowBoundaries -> ObservableExtensions.Chunk (source, windowBoundaries = windowBoundaries)
