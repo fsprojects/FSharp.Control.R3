@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Breaking:** `AwaitOperationConfiguration` cases are prefixed with `Await` (`AwaitSequential`, `AwaitParallel 4`, ...) so they no longer collide with `System.Threading.Tasks.Parallel`
+- **Breaking:** the `Async` functions raise the original exception instead of an `AggregateException`, and a cancelled operation cancels the computation instead of failing it
 - **Breaking:** the `Async` `toLookup` overloads no longer take a `cancellationToken`; they observe the token of the computation
 - **Breaking:** the `OptionExtensions`/`ValueOptionExtensions` types are replaced by `Observable.choose`, which takes a `voption` chooser, and `ObservableOption.choose` for `option`; the `Observable.Extensions` type is replaced by `Observable.ofSeq`
 - **Breaking:** after `open FSharp.Control.R3`, `Observable.choose` is the R3 function, like `Observable.map` and `Observable.filter` already were; use `Microsoft.FSharp.Control.Observable.choose` for `IObservable` and F# events
