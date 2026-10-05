@@ -21,6 +21,7 @@
     <Compile Include="Observable.fs" />
     <Compile Include="ObservableOption.fs" />
     <Compile Include="ObservableFactories.fs" />
+    <Compile Include="IterationGuard.fs" />
     <Compile Include="AsyncObservable.fs" />
     <Compile Include="TaskObservable.fs" />
   </ItemGroup>
