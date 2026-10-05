@@ -61,10 +61,10 @@ module Observable =
     /// </remarks>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
     let iterAsync cancellationToken options (action : CancellationToken -> 't -> Task<unit>) source =
+        // Waits through iter: waiting through length counted the elements with a checked add, which overflows on long-lived sources
         source
         |> mapAsync options action
-        |> length cancellationToken
-        :> Task
+        |> iter cancellationToken ignore
 
 [<AutoOpen>]
 module Extensions =

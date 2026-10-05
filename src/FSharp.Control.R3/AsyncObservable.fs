@@ -144,7 +144,9 @@ module Observable =
     /// by intercepting the message stream to run arbitrary actions for messages on the pipeline.
     /// </remarks>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
-    let iterAsync options (action : 't -> Async<unit>) source = source |> mapAsync options action |> length |> Async.Ignore
+    let iterAsync options (action : 't -> Async<unit>) source =
+        // Waits through iter: waiting through length counted the elements with a checked add, which overflows on long-lived sources
+        source |> mapAsync options action |> iter ignore
 
 [<AutoOpen>]
 module Extensions =
