@@ -104,13 +104,25 @@ module Observable =
                 guard.ThrowIfFailed ()
             }
 
+    // toArray and toList are curried module functions taking the token first, like every other function of this module.
+    // As static members of the extension type they were shadowed by the Async module functions whenever both flavours were opened.
+
+    /// Collects the elements of the source into an array once it completes.
+    let toArray (cancellationToken : CancellationToken) (source : Observable<'T>) = ObservableExtensions.ToArrayAsync (source, cancellationToken)
+
+    /// Collects the elements of the source into a list once it completes.
+    let toList (cancellationToken : CancellationToken) (source : Observable<'T>) = task {
+        let! array = ObservableExtensions.ToArrayAsync (source, cancellationToken)
+        return List.ofArray array
+    }
+
 [<AutoOpen>]
 module Extensions =
 
-    open System.Runtime.CompilerServices
+    open System.Collections.Generic
     open System.Runtime.InteropServices
 
-    [<AbstractClass; Sealed; Extension>]
+    [<AbstractClass; Sealed>]
     type Observable private () =
 
         /// <summary>
@@ -139,23 +151,33 @@ module Extensions =
             =
             Observable.FromAsync (asyncFactory, configureAwait)
 
-        static member inline toArray (source, [<Optional>] cancellationToken) = ObservableExtensions.ToArrayAsync (source, cancellationToken)
-
-        static member toList (source, [<Optional>] cancellationToken) = task {
-            let! array = ObservableExtensions.ToArrayAsync (source, cancellationToken)
-            return List.ofArray array
-        }
-
-        static member toLookup (source, keySelector : 'T -> 'Key, [<Optional>] cancellationToken) =
+        static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key, [<Optional>] cancellationToken : CancellationToken) =
             ObservableExtensions.ToLookupAsync (source, keySelector, cancellationToken)
 
-        static member toLookup (source, keySelector : 'T -> 'Key, keyComparer, [<Optional>] cancellationToken) =
+        static member toLookup
+            (
+                source : Observable<'T>,
+                keySelector : 'T -> 'Key,
+                keyComparer : IEqualityComparer<'Key>,
+                [<Optional>] cancellationToken : CancellationToken
+            )
+            =
             ObservableExtensions.ToLookupAsync (source, keySelector, keyComparer = keyComparer, cancellationToken = cancellationToken)
 
-        static member toLookup (source, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, [<Optional>] cancellationToken) =
+        static member toLookup
+            (source : Observable<'T>, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, [<Optional>] cancellationToken : CancellationToken)
+            =
             ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector = elementSelector, cancellationToken = cancellationToken)
 
-        static member toLookup (source, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, keyComparer, [<Optional>] cancellationToken) =
+        static member toLookup
+            (
+                source : Observable<'T>,
+                keySelector : 'T -> 'Key,
+                elementSelector : 'T -> 'Element,
+                keyComparer : IEqualityComparer<'Key>,
+                [<Optional>] cancellationToken : CancellationToken
+            )
+            =
             ObservableExtensions.ToLookupAsync (
                 source,
                 keySelector,
