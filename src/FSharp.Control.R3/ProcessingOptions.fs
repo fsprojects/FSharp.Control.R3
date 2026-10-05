@@ -19,20 +19,28 @@ type AwaitOperationConfiguration =
     | AwaitDrop
     /// <summary>If the previous asynchronous method is running, it is cancelled and the next asynchronous method is executed.</summary>
     | AwaitSwitch
-    /// <summary>All values are sent immediately to the asynchronous method.</summary>
+    /// <summary>Up to MaxConcurrent values, or all of them when it is -1, are sent to the asynchronous method at once; the others wait in a queue.</summary>
     | AwaitParallel of
         /// Maximum number of concurrent invocations; -1 means no limit, otherwise it must be greater than 0.
         MaxConcurrent : int
-    /// <summary>All values are sent immediately to the asynchronous method, but the results are queued and passed to the next operator in order.</summary>
+    /// <summary>
+    /// Up to MaxConcurrent values, or all of them when it is -1, are sent to the asynchronous method at once and the others wait in a queue,
+    /// but the results are passed to the next operator in the order of the values.
+    /// </summary>
     | AwaitSequentialParallel of
         /// Maximum number of concurrent invocations; -1 means no limit, otherwise it must be greater than 0.
         MaxConcurrent : int
     /// <summary>Send the first value and the last value while the asynchronous method is running.</summary>
     | AwaitThrottleFirstLast
 
+/// Options that configure how an asynchronous selector is applied to an observable sequence.
 type ProcessingOptions = {
+    /// Defines how elements that arrive while a previous invocation is running are processed.
     AwaitOperationConfiguration : AwaitOperationConfiguration
+    /// Whether R3 resumes on the captured synchronization context after awaiting the result of the asynchronous selector.
+    /// The awaits inside the selector capture the context on their own.
     ConfigureAwait : bool
+    /// Whether the running invocations are cancelled, their results dropped and the queued elements discarded when the source completes successfully.
     CancelOnCompleted : bool
 } with
 
@@ -48,9 +56,13 @@ type ProcessingOptions = {
         CancelOnCompleted = false
     }
 
+    /// Processes the elements one at a time in arrival order, capturing the synchronization context.
     static member Default = ``default``
+
+    /// Processes all elements concurrently without a limit, capturing the synchronization context.
     static member Parallel = ``parallel``
 
+    /// The concurrency limit of the parallel configurations; -1 (no limit) for every other configuration.
     member this.MaxConcurrent =
         match this.AwaitOperationConfiguration with
         | AwaitOperationConfiguration.AwaitSequential -> -1
@@ -60,6 +72,7 @@ type ProcessingOptions = {
         | AwaitOperationConfiguration.AwaitSequentialParallel maxConcurrent -> maxConcurrent
         | AwaitOperationConfiguration.AwaitThrottleFirstLast -> -1
 
+    /// <summary>The R3 <see cref="T:R3.AwaitOperation"/> that corresponds to <see cref="P:FSharp.Control.R3.ProcessingOptions.AwaitOperationConfiguration"/>.</summary>
     member this.AwaitOperation =
         match this.AwaitOperationConfiguration with
         | AwaitOperationConfiguration.AwaitSequential -> AwaitOperation.Sequential
@@ -83,22 +96,91 @@ type ProcessingOptions = {
             raise (ArgumentOutOfRangeException (paramName, maxConcurrent, "MaxConcurrent must be -1 (no limit) or greater than 0."))
         | _ -> ()
 
+/// Defines how an observable sequence is divided into chunks.
 type ChunkConfiguration<'T> =
-    | ChunkCount of WindowLength : int
-    | ChunkTimeSpan of WindowTime : TimeSpan * TimeProvider : TimeProvider
-    | ChunkTimeSpanCount of WindowTime : TimeSpan * WindowLength : int * TimeProvider : TimeProvider
-    | ChunkMilliseconds of WindowTime : int * TimeProvider : TimeProvider
-    | ChunkMillisecondsCount of WindowTime : int * WindowLength : int * TimeProvider : TimeProvider
-    | ChunkAsyncWindow of AsyncWindow : Func<'T, CancellationToken, ValueTask> * ConfigureAwait : bool
-    | ChunkWindowBoundaries of WindowBoundaries : Observable<'T>
+    /// Chunks of at most a number of elements.
+    | ChunkCount of
+        /// Maximum number of elements of a chunk.
+        WindowLength : int
+    /// Chunks of the elements received during a time span, measured from the first element of every chunk.
+    | ChunkTimeSpan of
+        /// Duration of a chunk, measured from its first element.
+        WindowTime : TimeSpan *
+        /// Time provider that measures the duration.
+        TimeProvider : TimeProvider
+    /// Chunks of at most a number of elements received during a time span, measured from the first element of every chunk.
+    | ChunkTimeSpanCount of
+        /// Duration of a chunk, measured from its first element.
+        WindowTime : TimeSpan *
+        /// Maximum number of elements of a chunk.
+        WindowLength : int *
+        /// Time provider that measures the duration.
+        TimeProvider : TimeProvider
+    /// Chunks of the elements received during a number of milliseconds, measured from the first element of every chunk.
+    | ChunkMilliseconds of
+        /// Duration of a chunk in milliseconds, measured from its first element.
+        WindowTime : int *
+        /// Time provider that measures the duration.
+        TimeProvider : TimeProvider
+    /// Chunks of at most a number of elements received during a number of milliseconds, measured from the first element of every chunk.
+    | ChunkMillisecondsCount of
+        /// Duration of a chunk in milliseconds, measured from its first element.
+        WindowTime : int *
+        /// Maximum number of elements of a chunk.
+        WindowLength : int *
+        /// Time provider that measures the duration.
+        TimeProvider : TimeProvider
+    /// Chunks that start with an element and end when the asynchronous window started for that element completes.
+    | ChunkAsyncWindow of
+        /// Starts the window of a chunk for its first element; the chunk ends when the returned task completes.
+        AsyncWindow : Func<'T, CancellationToken, ValueTask> *
+        /// Whether the continuation after the window resumes on the captured synchronization context.
+        ConfigureAwait : bool
+    /// <summary>
+    /// Chunks that end on every element of a boundary sequence.
+    /// <para>
+    /// The boundaries must have the element type of the source;
+    /// <see cref="M:FSharp.Control.R3.Observable.chunkByBoundaries``2(R3.Observable{``0},R3.Observable{``1})"/>
+    /// accepts boundaries of any element type.
+    /// </para>
+    /// </summary>
+    | ChunkWindowBoundaries of
+        /// Every element of this sequence ends a chunk.
+        WindowBoundaries : Observable<'T>
 
+/// <summary>
+/// Helpers that create <see cref="T:FSharp.Control.R3.ChunkConfiguration`1"/> values.
+/// <para>
+/// The time based helpers read <see cref="P:R3.ObservableSystem.DefaultTimeProvider"/> when they are called;
+/// use the union cases directly to pass another time provider.
+/// </para>
+/// </summary>
 module ChunkConfiguration =
+
+    /// <summary>Chunks of the elements received during <paramref name="windowTime"/>, measured by the default time provider.</summary>
     let inline TimeSpan windowTime = ChunkTimeSpan (windowTime, ObservableSystem.DefaultTimeProvider)
+
+    /// <summary>
+    /// Chunks of at most <paramref name="windowLength"/> elements received during <paramref name="windowTime"/>,
+    /// measured by the default time provider.
+    /// </summary>
     let inline TimeSpanCount windowTime windowLength =
         ChunkTimeSpanCount (windowTime, windowLength, ObservableSystem.DefaultTimeProvider)
+
+    /// <summary>Chunks of the elements received during <paramref name="windowTime"/> milliseconds, measured by the default time provider.</summary>
     let inline Milliseconds windowTime = ChunkMilliseconds (windowTime, ObservableSystem.DefaultTimeProvider)
+
+    /// <summary>
+    /// Chunks of at most <paramref name="windowLength"/> elements received during <paramref name="windowTime"/> milliseconds,
+    /// measured by the default time provider.
+    /// </summary>
     let inline MillisecondsCount windowTime windowLength =
         ChunkMillisecondsCount (windowTime, windowLength, ObservableSystem.DefaultTimeProvider)
+
+    /// <summary>
+    /// Chunks that start with an element and end when the computation <paramref name="asyncWindow"/> returns for that element completes.
+    /// The computation runs with a cancellation token that is cancelled when the chunked sequence completes or is disposed.
+    /// </summary>
     let AsyncWindow (asyncWindow : 'T -> Async<unit>) =
         let asyncWindow element ct =
             Async.StartImmediateAsTask (asyncWindow element, ct) :> Task
