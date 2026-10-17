@@ -1,3 +1,7 @@
+/// <summary>
+/// The Async flavour: functions that consume observable sequences as <see cref="T:Microsoft.FSharp.Control.FSharpAsync`1"/> computations
+/// and asynchronous operators built on Async computations.
+/// </summary>
 module FSharp.Control.R3.Async
 
 open System
@@ -39,11 +43,26 @@ module internal Interop =
         | Choice2Of2 error -> return! failedOutcome task error
     }
 
-/// <remarks>Caution! All functions returning <see cref="Async`1"/> are blocking and may never return if awaited</remarks>
+/// <summary>
+/// Functions that consume an observable sequence as an <see cref="T:Microsoft.FSharp.Control.FSharpAsync`1"/>.
+/// <para>
+/// The computations are cold: they subscribe when they start, so elements that a hot source emits before the start are missed,
+/// and they complete when the deciding element arrives or the source terminates, which for an endless source may be never.
+/// Like <see cref="M:Microsoft.FSharp.Control.FSharpAsync.AwaitTask``1(System.Threading.Tasks.Task{``0})"/> they resume on the
+/// synchronization context that was current when they started to wait.
+/// <see cref="M:FSharp.Control.R3.Async.Observable.mapAsync``2(FSharp.Control.R3.ProcessingOptions,Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Control.FSharpAsync{``1}},R3.Observable{``0})"/>
+/// and <see cref="M:FSharp.Control.R3.Async.Observable.ofAsync``1(Microsoft.FSharp.Control.FSharpAsync{``0})"/> are operators instead:
+/// they return an observable sequence.
+/// </para>
+/// <para>
+/// A failure of the source, including an error reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>,
+/// raises the original exception. Cancelling the computation disposes the subscription and cancels the computation.
+/// </para>
+/// </summary>
 module Observable =
 
-    /// Applies an accumulator function over an observable sequence, returning the
-    /// result of the aggregation as a single element in the result sequence
+    /// Applies the accumulator to every element, starting from the seed, and returns the final accumulated value;
+    /// the seed when the source has no element.
     let aggregate seed (f : 'r -> 't -> 'r) source = async {
         let! ct = Async.CancellationToken
         return!
@@ -51,7 +70,8 @@ module Observable =
             |> Interop.awaitTask
     }
 
-    /// Determines whether all elements of an observable satisfy a predicate
+    /// Determines whether every element satisfies the predicate; returns false at the first element that does not,
+    /// true when the source completes.
     let all (f : 't -> bool) source = async {
         let! ct = Async.CancellationToken
         return!
@@ -59,8 +79,8 @@ module Observable =
             |> Interop.awaitTask
     }
 
-    /// Determines whether an observable sequence contains a specified value
-    /// which satisfies the given predicate
+    /// Determines whether the source has any element; returns true at the first element,
+    /// false when the source completes without one.
     let existsAsync source = async {
         let! ct = Async.CancellationToken
         return!
@@ -68,7 +88,10 @@ module Observable =
             |> Interop.awaitTask
     }
 
-    /// Returns the first element of an observable sequence
+    /// <summary>
+    /// Returns the first element of the source.
+    /// Raises <see cref="T:System.InvalidOperationException"/> when the source completes without an element.
+    /// </summary>
     let firstAsync source = async {
         let! ct = Async.CancellationToken
         return!
@@ -77,13 +100,12 @@ module Observable =
     }
 
     /// <summary>
-    /// Invokes an action for each element in the observable sequence, and propagates all observer
-    /// messages through the result sequence.
+    /// Subscribes to the source and invokes the action for every element.
+    /// <para>
+    /// The computation completes when the source completes. An exception thrown by the action, or an error of the source,
+    /// stops the processing and is raised by the computation.
+    /// </para>
     /// </summary>
-    /// <remarks>
-    /// This method can be used for debugging, logging, etc. of query behavior
-    /// by intercepting the message stream to run arbitrary actions for messages on the pipeline.
-    /// </remarks>
     let iter (action : 't -> unit) source = async {
         let! ct = Async.CancellationToken
         return!
@@ -91,7 +113,7 @@ module Observable =
             |> Interop.awaitUnitTask
     }
 
-    /// Returns the last element of an observable sequence till its completion or cancellation
+    /// Returns the number of elements of the source once it completes.
     let length source = async {
         let! ct = Async.CancellationToken
         return!
@@ -99,7 +121,17 @@ module Observable =
             |> Interop.awaitTask
     }
 
-    /// <summary>Maps the given observable with the given asynchronous function</summary>
+    /// <summary>
+    /// Projects every element with the asynchronous function, processing elements that arrive while a previous invocation
+    /// is running as defined by <paramref name="options"/>.
+    /// <para>
+    /// The computation runs with a cancellation token that is cancelled when the subscription is disposed,
+    /// when the source fails, with <see cref="P:FSharp.Control.R3.AwaitOperationConfiguration.AwaitSwitch"/> when the next element arrives,
+    /// or, with <see cref="P:FSharp.Control.R3.ProcessingOptions.CancelOnCompleted"/>, when the source completes.
+    /// An exception raised by the computation is reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>
+    /// and the sequence continues.
+    /// </para>
+    /// </summary>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
     let mapAsync (options : ProcessingOptions) (f : 't -> Async<'r>) source =
         options.Validate (nameof options)
@@ -113,13 +145,19 @@ module Observable =
             options.MaxConcurrent
         )
 
-    /// Creates observable sequence from a single element returned by asynchronous computation
+    /// <summary>
+    /// Creates an observable sequence that starts the computation on every subscription, emits its result and completes.
+    /// <para>
+    /// Disposing the subscription cancels the computation. A failure of the computation completes the sequence with that failure.
+    /// </para>
+    /// </summary>
     let ofAsync (computation : Async<'T>) =
         Observable.FromAsync (fun ct ->
             Async.StartImmediateAsTask (computation, cancellationToken = ct)
             |> ValueTask<'T>
         )
 
+    /// Collects the elements of the source into an array once it completes.
     let toArray source = async {
         let! ct = Async.CancellationToken
         return!
@@ -127,6 +165,7 @@ module Observable =
             |> Interop.awaitTask
     }
 
+    /// Collects the elements of the source into a list once it completes.
     let toList source = async {
         let! ct = Async.CancellationToken
         let! array =
@@ -183,6 +222,11 @@ module Observable =
             guard.ThrowIfFailed ()
         }
 
+/// <summary>
+/// Overloaded functions of the Async flavour, reachable through the type name <c>Observable</c>, such as
+/// <see cref="M:FSharp.Control.R3.Async.Extensions.Observable.toLookup``2(R3.Observable{``0},Microsoft.FSharp.Core.FSharpFunc{``0,``1})"/>,
+/// after opening <see cref="T:FSharp.Control.R3.Async"/>.
+/// </summary>
 [<AutoOpen>]
 module Extensions =
 
@@ -190,9 +234,12 @@ module Extensions =
 
     // The overloads take no cancellation token: like every other Async function they observe the token of the computation.
     // An unused generic [<Optional>] token parameter used to swallow a positional keyComparer or elementSelector.
+
+    /// Overloaded functions of the Async flavour.
     [<AbstractClass; Sealed>]
     type Observable private () =
 
+        /// Groups the elements of the source by key once it completes.
         static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key) = async {
             let! ct = Async.CancellationToken
             return!
@@ -200,6 +247,7 @@ module Extensions =
                 |> Interop.awaitTask
         }
 
+        /// Groups the elements of the source by key, compared with the comparer, once it completes.
         static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key, keyComparer : IEqualityComparer<'Key>) = async {
             let! ct = Async.CancellationToken
             return!
@@ -207,6 +255,7 @@ module Extensions =
                 |> Interop.awaitTask
         }
 
+        /// Groups the projected elements of the source by key once it completes.
         static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element) = async {
             let! ct = Async.CancellationToken
             return!
@@ -214,6 +263,7 @@ module Extensions =
                 |> Interop.awaitTask
         }
 
+        /// Groups the projected elements of the source by key, compared with the comparer, once it completes.
         static member toLookup
             (source : Observable<'T>, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, keyComparer : IEqualityComparer<'Key>)
             = async {
