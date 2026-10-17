@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Breaking:** `AwaitOperationConfiguration` cases are prefixed with `Await` (`AwaitSequential`, `AwaitParallel 4`, ...) so they no longer collide with `System.Threading.Tasks.Parallel`
+- **Breaking:** `rxquery` `sumBy` adds values of the projected type: it requires `(+) : 'Value * 'Value -> 'Value`
 - `mapAsync` and `iterAsync` validate the concurrency limit of the options when they are called
 
 ### Fixed
 
 - `rxquery` emitted its elements on the thread pool, out of order and after the source had moved on; `yield` and `zero` are now synchronous
+- `rxquery` `sumBy` passed `null` to the `(+)` of reference types
 
 ## [0.3.1] - 2026-01-28
 

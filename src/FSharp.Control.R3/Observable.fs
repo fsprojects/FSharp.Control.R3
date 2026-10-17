@@ -163,10 +163,20 @@ module Builders =
         member _.MinBy (s : Observable<'a>, [<ProjectionParameter>] valueSelector : 'a -> 'b) = s.MinByAsync (new Func<'a, 'b> (valueSelector))
 
         [<CustomOperation("sumBy")>]
-        member inline _.SumBy (s : Observable<_>, [<ProjectionParameter>] valueSelector : _ -> _) =
+        member inline _.SumBy (s : Observable<_>, [<ProjectionParameter>] valueSelector : _ -> 'Value) =
+            // The first element seeds the sum: seeding with Unchecked.defaultof passed null to the (+) of reference types,
+            // while requiring a Zero member would reject types such as TimeSpan whose zero is a field
             s
             |> _.Select(valueSelector)
-            |> _.AggregateAsync(Unchecked.defaultof<_>, new Func<_, _, _> (fun a b -> a + b))
+            |> _.AggregateAsync(
+                ValueNone,
+                new Func<_, _, _> (fun sum value ->
+                    match sum with
+                    | ValueNone -> ValueSome value
+                    | ValueSome sum -> ValueSome (sum + value)
+                ),
+                new Func<_, _> (ValueOption.defaultValue Unchecked.defaultof<'Value>)
+            )
 
         [<CustomOperation("zip", IsLikeZip = true)>]
         member _.Zip (s1 : Observable<_>, s2 : Observable<_>, [<ProjectionParameter>] resultSelector : _ -> _) =
