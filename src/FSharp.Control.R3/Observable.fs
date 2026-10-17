@@ -1,25 +1,56 @@
+/// <summary>
+/// Curried, pipeline-friendly F# functions over the operators of <see cref="T:R3.ObservableExtensions"/>,
+/// and the <see cref="T:FSharp.Control.R3.Observable.BuildersModule.RxQueryBuilder"/> query builder.
+/// </summary>
 module FSharp.Control.R3.Observable
 
 open System
 open R3
 
-/// Hides the identy of an observable sequence
+/// Hides the identity of the source, so that consumers cannot cast it back to its original type, such as a subject.
 let inline asObservable source : Observable<'Source> = ObservableExtensions.AsObservable source
 
-/// Binds an observable to generate a subsequent observable.
+/// <summary>
+/// Projects every element to an observable sequence and merges the inner sequences into one.
+/// <para>
+/// The inner sequences run concurrently and their elements are emitted as they arrive.
+/// The result completes when the source and every inner sequence have completed. It fails when the source fails,
+/// or when an inner sequence fails while the source is still running.
+/// </para>
+/// </summary>
 let inline bind ([<InlineIfLambda>] f : 'T -> Observable<'TNext>) source = ObservableExtensions.SelectMany (source, f)
 
-/// Converts the elements of the sequence to the specified type
+/// <summary>
+/// Casts every element to <typeparamref name="CastType"/>.
+/// An element that cannot be cast is reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>
+/// as an <see cref="T:System.InvalidCastException"/>, or as a <see cref="T:System.NullReferenceException"/> when
+/// a <see langword="null"/> element is cast to a value type, and the sequence continues.
+/// </summary>
 let inline cast<'T, 'CastType> (source) = ObservableExtensions.Cast<'T, 'CastType>(source)
 
 /// <summary>
-/// Adds an error handler to an observable sequence.
+/// Continues with the observable sequence returned by <paramref name="f"/> when the source fails.
+/// <para>
+/// Only a terminal failure, a completion with <see cref="M:R3.Result.Failure(System.Exception)"/> whose exception is
+/// of type <typeparamref name="Exn"/>, is handled; other failures are forwarded unchanged. The failed source is not resumed.
+/// </para>
+/// <para>
+/// Non-terminal errors reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>, such as exceptions
+/// thrown by the functions passed to <see cref="M:FSharp.Control.R3.Observable.map``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},R3.Observable{``0})"/>
+/// or <see cref="M:FSharp.Control.R3.Observable.filter``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},R3.Observable{``0})"/>,
+/// pass through without reaching the handler.
+/// A handler whose argument type is not annotated handles every exception.
+/// </para>
 /// </summary>
-/// <remarks>Exception does not stop further processing</remarks>
 let inline catch ([<InlineIfLambda>] f : 'Exn -> Observable<'T>) o = ObservableExtensions.Catch (o, f)
 
-/// Concatenates the second observable sequence to the first observable sequence
-/// upn the successful termination of the first
+/// <summary>
+/// Emits the elements of <paramref name="first"/> and, after it completes successfully, the elements of <paramref name="second"/>.
+/// <para>
+/// A failure of <paramref name="first"/> terminates the result without subscribing to <paramref name="second"/>.
+/// The parameters follow the reading order, so in a pipeline <c>a |&gt; Observable.concat b</c> emits <c>b</c> first.
+/// </para>
+/// </summary>
 let inline concat first second = ObservableExtensions.Concat (first, second)
 
 // R3 validates the length of Chunk(count) with the message as the parameter name and without the value, and does not validate
@@ -76,36 +107,57 @@ let chunkBy (configuration : ChunkConfiguration<'T>) (source : Observable<'T>) =
 let inline chunkByBoundaries (windowBoundaries : Observable<'Boundary>) (source : Observable<'T>) =
     ObservableExtensions.Chunk (source, windowBoundaries = windowBoundaries)
 
-/// Returns an observable sequence that only contains distinct elements
+/// Emits every element that has not been emitted before, compared with the default equality comparer.
 let inline distinct source = ObservableExtensions.Distinct source
 
-/// Returns an observable sequence that contains no elements
+/// An observable sequence that completes successfully on subscription without emitting any element.
 let inline empty () = Observable.Empty ()
 
-/// Filters the observable elements of a sequence based on a predicate
+/// <summary>
+/// Emits the elements that satisfy the predicate.
+/// An exception thrown by the predicate is reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>
+/// and the sequence continues.
+/// </summary>
 let inline filter ([<InlineIfLambda>] f : 'T -> bool) source = ObservableExtensions.Where (source, f)
 
-/// Maps the given observable with the given function
+/// <summary>
+/// Projects every element with the function.
+/// An exception thrown by the function is reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>
+/// and the sequence continues.
+/// </summary>
 let inline map ([<InlineIfLambda>] f : 'T -> 'R) source = ObservableExtensions.Select (source, f)
 
-/// Maps the given observable with the given function and the index of the element
-let inline mapi ([<InlineIfLambda>] f : int -> 'T -> 'R) source = ObservableExtensions.Select (source, (fun i x -> f x i))
+/// Projects every element with the function, which receives the zero-based index of the element first and the element second.
+/// The index restarts for every subscription.
+let inline mapi ([<InlineIfLambda>] f : int -> 'T -> 'R) source = ObservableExtensions.Select (source, (fun x i -> f i x))
 
-/// Merges two observable sequences into one observable sequence
+/// Emits the elements of both sequences as they arrive.
+/// The result completes when both sequences have completed, and fails as soon as either of them fails.
 let inline merge (source1, source2) = ObservableExtensions.Merge (source1, source2)
 
+/// Emits the elements that are of type 'R, cast to it, and silently drops the others.
 let inline ofType<'T, 'R> (source) = ObservableExtensions.OfType<'T, 'R>(source)
 
-/// Returns an observable sequence that contains only a single element
+/// An observable sequence that emits the item synchronously on subscription and then completes.
 let inline singleton item = Observable.Return<'T> item
 
-/// Bypasses a specified number of elements in an observable sequence and then returns the remaining elements
+/// <summary>Bypasses the first <paramref name="count"/> elements and emits the remaining ones.</summary>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="count"/> is negative.</exception>
 let inline skip (count : int) (source) = ObservableExtensions.Skip (source, count)
 
-/// Takes n elements (from the beginning of an observable sequence?)
+/// <summary>
+/// Emits the first <paramref name="count"/> elements and then completes, disposing the subscription to the source.
+/// A count of 0 completes at once without subscribing to the source.
+/// </summary>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="count"/> is negative.</exception>
 let inline take (count : int) (source) = ObservableExtensions.Take (source, count)
 
-/// Filters the observable elements of a sequence based on a predicate
+/// <summary>
+/// Emits the elements that satisfy the predicate; the same as
+/// <see cref="M:FSharp.Control.R3.Observable.filter``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},R3.Observable{``0})"/>.
+/// An exception thrown by the predicate is reported through <see cref="M:R3.Observer`1.OnErrorResume(System.Exception)"/>
+/// and the sequence continues.
+/// </summary>
 let inline where ([<InlineIfLambda>] f : 'T -> bool) source = ObservableExtensions.Where (source, f)
 
 // choose is a module function rather than a static member of an extension type: a module function here shadows
