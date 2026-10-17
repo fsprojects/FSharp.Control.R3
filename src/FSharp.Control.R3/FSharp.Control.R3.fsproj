@@ -19,6 +19,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ProcessingOptions.fs" />
     <Compile Include="Observable.fs" />
+    <Compile Include="ObservableFactories.fs" />
     <Compile Include="AsyncObservable.fs" />
     <Compile Include="TaskObservable.fs" />
   </ItemGroup>
