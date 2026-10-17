@@ -6,7 +6,7 @@ open FSharp.Control.R3.Async
 open Microsoft.VisualStudio.TestTools.UnitTesting
 open Swensen.Unquote
 
-[<TestClass>]
+[<TestClass; ObservableTestCategory>]
 type ObservableTests () =
 
     [<TestMethod>]
