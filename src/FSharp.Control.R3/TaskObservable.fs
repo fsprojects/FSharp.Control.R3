@@ -114,15 +114,29 @@ module Extensions =
     type Observable private () =
 
         /// <summary>
-        /// Creates observable sequence from a single element returned by cancellable <see cref="ValueTask"/>
+        /// Creates an observable sequence that invokes the factory on every subscription, emits <see cref="F:R3.Unit.Default"/>
+        /// when its <see cref="T:System.Threading.Tasks.ValueTask"/> completes, and then completes.
+        /// <para>
+        /// Disposing the subscription cancels the token passed to the factory. A failure of the task completes the sequence
+        /// with that failure. <paramref name="configureAwait"/> (true by default) defines whether the continuation
+        /// resumes on the captured synchronization context.
+        /// </para>
         /// </summary>
-        static member inline ofTask (asyncFactory : CancellationToken -> ValueTask, [<Optional>] configureAwait) =
+        static member inline ofTask (asyncFactory : CancellationToken -> ValueTask, [<Optional; DefaultParameterValue(true)>] configureAwait : bool) =
             Observable.FromAsync (asyncFactory, configureAwait)
 
         /// <summary>
-        /// Creates observable sequence from a single element returned by cancellable <see cref="ValueTask"/>
+        /// Creates an observable sequence that invokes the factory on every subscription, emits the result of its
+        /// <see cref="T:System.Threading.Tasks.ValueTask`1"/>, and then completes.
+        /// <para>
+        /// Disposing the subscription cancels the token passed to the factory. A failure of the task completes the sequence
+        /// with that failure. <paramref name="configureAwait"/> (true by default) defines whether the continuation
+        /// resumes on the captured synchronization context.
+        /// </para>
         /// </summary>
-        static member inline ofTask (asyncFactory : CancellationToken -> ValueTask<'T>, [<Optional>] configureAwait) =
+        static member inline ofTask
+            (asyncFactory : CancellationToken -> ValueTask<'T>, [<Optional; DefaultParameterValue(true)>] configureAwait : bool)
+            =
             Observable.FromAsync (asyncFactory, configureAwait)
 
         static member inline toArray (source, [<Optional>] cancellationToken) = ObservableExtensions.ToArrayAsync (source, cancellationToken)
