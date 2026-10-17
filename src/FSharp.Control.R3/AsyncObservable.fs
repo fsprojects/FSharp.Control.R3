@@ -115,37 +115,39 @@ module Observable =
 [<AutoOpen>]
 module Extensions =
 
-    open System.Runtime.CompilerServices
-    open System.Runtime.InteropServices
+    open System.Collections.Generic
 
-    [<AbstractClass; Sealed; Extension>]
+    // The overloads take no cancellation token: like every other Async function they observe the token of the computation.
+    // An unused generic [<Optional>] token parameter used to swallow a positional keyComparer or elementSelector.
+    [<AbstractClass; Sealed>]
     type Observable private () =
 
-        static member toLookup (source, keySelector : 'T -> 'Key, [<Optional>] cancellationToken) = async {
+        static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key) = async {
             let! ct = Async.CancellationToken
             return!
                 ObservableExtensions.ToLookupAsync (source, keySelector, ct)
                 |> Async.AwaitTask
         }
 
-        static member toLookup (source, keySelector : 'T -> 'Key, keyComparer, [<Optional>] cancellationToken) = async {
+        static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key, keyComparer : IEqualityComparer<'Key>) = async {
             let! ct = Async.CancellationToken
             return!
                 ObservableExtensions.ToLookupAsync (source, keySelector, keyComparer = keyComparer, cancellationToken = ct)
                 |> Async.AwaitTask
         }
 
-        static member toLookup (source, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, [<Optional>] cancellationToken) = async {
+        static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element) = async {
             let! ct = Async.CancellationToken
             return!
                 ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector = elementSelector, cancellationToken = ct)
                 |> Async.AwaitTask
         }
 
-        static member toLookup (source, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, keyComparer, [<Optional>] cancellationToken) =
-            async {
-                let! ct = Async.CancellationToken
-                return!
-                    ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector, keyComparer = keyComparer, cancellationToken = ct)
-                    |> Async.AwaitTask
-            }
+        static member toLookup
+            (source : Observable<'T>, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element, keyComparer : IEqualityComparer<'Key>)
+            = async {
+            let! ct = Async.CancellationToken
+            return!
+                ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector, keyComparer = keyComparer, cancellationToken = ct)
+                |> Async.AwaitTask
+        }
