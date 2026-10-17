@@ -65,8 +65,10 @@ module Observable =
             |> Async.AwaitTask
     }
 
-    /// Maps the given observable with the given asynchronous function
+    /// <summary>Maps the given observable with the given asynchronous function</summary>
+    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
     let mapAsync (options : ProcessingOptions) (f : 't -> Async<'r>) source =
+        options.Validate (nameof options)
         let selector x ct = ValueTask<'r>(Async.StartImmediateAsTask (f x, ct))
         ObservableExtensions.SelectAwait (
             source,
@@ -107,6 +109,7 @@ module Observable =
     /// This method can be used for debugging, logging, etc. of query behavior
     /// by intercepting the message stream to run arbitrary actions for messages on the pipeline.
     /// </remarks>
+    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
     let iterAsync options (action : 't -> Async<unit>) source = source |> mapAsync options action |> length |> Async.Ignore
 
 [<AutoOpen>]
