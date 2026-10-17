@@ -14,6 +14,7 @@
     <PackageVersion Include="Fake.IO.FileSystem" Version="6.2.0" />
     <PackageVersion Include="Fake.Tools.Git" Version="6.2.0" />
     <PackageVersion Include="FSharp.Compiler.Service" Version="43.12.402" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.402" />
     <PackageVersion Include="MSTest" Version="4.2.3" />

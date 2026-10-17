@@ -4,6 +4,9 @@
       "enabled": true,
       "scope": "method",
       "workers": 0
+    },
+    "timeout": {
+      "test": 10000
     }
   }
 }
