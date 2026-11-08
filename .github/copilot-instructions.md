@@ -22,6 +22,7 @@
 │   ├── AsyncObservable.fs          – Async flavour (cold `Async` terminals, `mapAsync`, `ofAsync`)
 │   └── TaskObservable.fs           – Task flavour (hot `Task` terminals, `mapAsync`, `ofTask`)
 ├── tests/FSharp.Control.R3.Tests/  – MSTest test project
+│   ├── TestCategories.fs           – test category attributes for `--filter TestCategory=...`
 │   ├── BuilderTests.fs             – builder behavior tests
 │   └── ObservableTests.fs          – observable behavior tests
 ├── build/                          – FAKE build scripts and release automation
