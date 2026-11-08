@@ -1,9 +1,43 @@
 module FSharp.Control.R3.Async
 
-open R3
+open System
 open System.Threading
 open System.Threading.Tasks
+open R3
 open FSharp.Control.R3
+
+/// Awaiting helpers shared by the Async wrappers.
+module internal Interop =
+
+    // Async.AwaitTask resumes on the synchronization context of the caller, but it raises the AggregateException of a faulted task
+    // and turns a cancelled task into a failure, while the Task flavour of this library surfaces the original exception and the
+    // cancellation. The helpers keep Async.AwaitTask and translate its outcome on the thread it resumed on.
+
+    /// Raises the outcome of a task that did not complete successfully through the continuations of the computation,
+    /// which keeps the stack trace of the original throw.
+    let private failedOutcome (task : Task) (error : exn) : Async<'T> =
+        Async.FromContinuations (fun (_, onError, onCancel) ->
+            if task.IsCanceled then
+                onCancel (TaskCanceledException task)
+            else
+                match error with
+                | :? AggregateException as aggregate when aggregate.InnerExceptions.Count = 1 -> onError aggregate.InnerExceptions[0]
+                | error -> onError error
+        )
+
+    /// Awaits the task, raising the original exception of a fault and cancelling the computation when the task is cancelled.
+    let awaitTask (task : Task<'T>) : Async<'T> = async {
+        match! Async.AwaitTask task |> Async.Catch with
+        | Choice1Of2 result -> return result
+        | Choice2Of2 error -> return! failedOutcome task error
+    }
+
+    /// Awaits the task, raising the original exception of a fault and cancelling the computation when the task is cancelled.
+    let awaitUnitTask (task : Task) : Async<unit> = async {
+        match! Async.AwaitTask task |> Async.Catch with
+        | Choice1Of2 () -> return ()
+        | Choice2Of2 error -> return! failedOutcome task error
+    }
 
 /// <remarks>Caution! All functions returning <see cref="Async`1"/> are blocking and may never return if awaited</remarks>
 module Observable =
@@ -14,7 +48,7 @@ module Observable =
         let! ct = Async.CancellationToken
         return!
             ObservableExtensions.AggregateAsync (source, seed, f, ct)
-            |> Async.AwaitTask
+            |> Interop.awaitTask
     }
 
     /// Determines whether all elements of an observable satisfy a predicate
@@ -22,7 +56,7 @@ module Observable =
         let! ct = Async.CancellationToken
         return!
             ObservableExtensions.AllAsync (source, f, ct)
-            |> Async.AwaitTask
+            |> Interop.awaitTask
     }
 
     /// Determines whether an observable sequence contains a specified value
@@ -31,7 +65,7 @@ module Observable =
         let! ct = Async.CancellationToken
         return!
             ObservableExtensions.AnyAsync (source, ct)
-            |> Async.AwaitTask
+            |> Interop.awaitTask
     }
 
     /// Returns the first element of an observable sequence
@@ -39,7 +73,7 @@ module Observable =
         let! ct = Async.CancellationToken
         return!
             ObservableExtensions.FirstAsync (source, ct)
-            |> Async.AwaitTask
+            |> Interop.awaitTask
     }
 
     /// <summary>
@@ -54,7 +88,7 @@ module Observable =
         let! ct = Async.CancellationToken
         return!
             ObservableExtensions.ForEachAsync (source, action, ct)
-            |> Async.AwaitTask
+            |> Interop.awaitUnitTask
     }
 
     /// Returns the last element of an observable sequence till its completion or cancellation
@@ -62,7 +96,7 @@ module Observable =
         let! ct = Async.CancellationToken
         return!
             ObservableExtensions.CountAsync (source, ct)
-            |> Async.AwaitTask
+            |> Interop.awaitTask
     }
 
     /// <summary>Maps the given observable with the given asynchronous function</summary>
@@ -86,18 +120,18 @@ module Observable =
             |> ValueTask<'T>
         )
 
-    let inline toArray source = async {
+    let toArray source = async {
         let! ct = Async.CancellationToken
         return!
             ObservableExtensions.ToArrayAsync (source, ct)
-            |> Async.AwaitTask
+            |> Interop.awaitTask
     }
 
     let toList source = async {
         let! ct = Async.CancellationToken
         let! array =
             ObservableExtensions.ToArrayAsync (source, ct)
-            |> Async.AwaitTask
+            |> Interop.awaitTask
         return List.ofArray array
     }
 
@@ -126,21 +160,21 @@ module Extensions =
             let! ct = Async.CancellationToken
             return!
                 ObservableExtensions.ToLookupAsync (source, keySelector, ct)
-                |> Async.AwaitTask
+                |> Interop.awaitTask
         }
 
         static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key, keyComparer : IEqualityComparer<'Key>) = async {
             let! ct = Async.CancellationToken
             return!
                 ObservableExtensions.ToLookupAsync (source, keySelector, keyComparer = keyComparer, cancellationToken = ct)
-                |> Async.AwaitTask
+                |> Interop.awaitTask
         }
 
         static member toLookup (source : Observable<'T>, keySelector : 'T -> 'Key, elementSelector : 'T -> 'Element) = async {
             let! ct = Async.CancellationToken
             return!
                 ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector = elementSelector, cancellationToken = ct)
-                |> Async.AwaitTask
+                |> Interop.awaitTask
         }
 
         static member toLookup
@@ -149,5 +183,5 @@ module Extensions =
             let! ct = Async.CancellationToken
             return!
                 ObservableExtensions.ToLookupAsync (source, keySelector, elementSelector, keyComparer = keyComparer, cancellationToken = ct)
-                |> Async.AwaitTask
+                |> Interop.awaitTask
         }
