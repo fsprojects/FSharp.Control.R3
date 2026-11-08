@@ -75,15 +75,6 @@ let inline take (count : int) (source) = ObservableExtensions.Take (source, coun
 let inline where ([<InlineIfLambda>] f : 'T -> bool) source = ObservableExtensions.Where (source, f)
 
 open System.Runtime.CompilerServices
-open System.Runtime.InteropServices
-
-[<AutoOpen>]
-module Extensions =
-
-    [<AbstractClass; Sealed; Extension>]
-    type Observable private () =
-
-        static member ofSeq (items : _ seq, [<Optional>] cancellationToken) = Observable.ToObservable (items, cancellationToken)
 
 [<AutoOpen>]
 module OptionExtensions =
