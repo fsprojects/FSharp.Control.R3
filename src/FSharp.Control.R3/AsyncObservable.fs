@@ -136,17 +136,55 @@ module Observable =
     }
 
     /// <summary>
-    /// Invokes an asynchronous action for each element in the observable sequence, and propagates all observer
-    /// messages through the result sequence.
+    /// Subscribes to the source and invokes the asynchronous action for the elements, processing elements that arrive
+    /// while a previous invocation is running as defined by <paramref name="options"/>.
+    /// <para>
+    /// Depending on the options, not every element reaches the action: <see cref="P:FSharp.Control.R3.AwaitOperationConfiguration.AwaitDrop"/>
+    /// and <see cref="P:FSharp.Control.R3.AwaitOperationConfiguration.AwaitThrottleFirstLast"/> skip elements.
+    /// The computation completes when the source and the running actions complete; with
+    /// <see cref="P:FSharp.Control.R3.ProcessingOptions.CancelOnCompleted"/> it completes as soon as the source completes,
+    /// the running actions are cancelled without being awaited, and the queued elements never reach the action.
+    /// </para>
+    /// <para>
+    /// The first exception raised by the action stops the processing at once, also over a source that emits synchronously, and is
+    /// raised by the computation. An <see cref="T:System.OperationCanceledException"/> is the cancellation of the invocation, not an
+    /// exception of the action, when the cancellation token of the invocation has been cancelled by the time the exception is observed;
+    /// any other one, such as the timeout of an HTTP request, stops the processing as well. An error of the source is raised too.
+    /// A computation started with an already cancelled token is cancelled without subscribing.
+    /// </para>
     /// </summary>
-    /// <remarks>
-    /// This method can be used for debugging, logging, etc. of query behavior
-    /// by intercepting the message stream to run arbitrary actions for messages on the pipeline.
-    /// </remarks>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the concurrency limit of the options is 0 or below -1.</exception>
-    let iterAsync options (action : 't -> Async<unit>) source =
-        // Waits through iter: waiting through length counted the elements with a checked add, which overflows on long-lived sources
-        source |> mapAsync options action |> iter ignore
+    let iterAsync (options : ProcessingOptions) (action : 't -> Async<unit>) (source : Observable<'t>) =
+        options.Validate (nameof options)
+        async {
+            // Binding the token cancels a computation started with an already cancelled token before it subscribes
+            let! cancellationToken = Async.CancellationToken
+            let guard = IterationGuard cancellationToken
+            let guardedAction value = async {
+                if not guard.IsStopped then
+                    let! actionToken = Async.CancellationToken
+                    try
+                        do! action value
+                    with
+                    | :? OperationCanceledException when actionToken.IsCancellationRequested ->
+                        // Defensive: when R3 cancels this invocation (switch, cancel on completion, disposal), FSharp.Core cancels the
+                        // computation without running this handler at all; the branch only catches a cancellation that races with it,
+                        // and keeps the guard aligned with the Task flavour, where such a cancellation does reach the handler.
+                        // The state of the token decides, not the token of the exception: an action may link the token with others or
+                        // throw a bare exception once it noticed the cancellation, and a comparison of tokens would fail the iteration then
+                        ()
+                    | error ->
+                        // Not rethrown: the guard stops the iteration and reports the failure itself (see IterationGuard)
+                        guard.Fail error
+            }
+            // Waits through iter: waiting through length counted the elements with a checked add, which overflows on long-lived sources
+            do!
+                source
+                |> mapAsync options guardedAction
+                |> _.TakeUntil(guard.StopToken)
+                |> iter ignore
+            guard.ThrowIfFailed ()
+        }
 
 [<AutoOpen>]
 module Extensions =
