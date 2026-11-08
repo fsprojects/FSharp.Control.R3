@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** `AwaitOperationConfiguration` cases are prefixed with `Await` (`AwaitSequential`, `AwaitParallel 4`, ...) so they no longer collide with `System.Threading.Tasks.Parallel`
 - **Breaking:** the `Async` functions raise the original exception instead of an `AggregateException`, and a cancelled operation cancels the computation instead of failing it
 - **Breaking:** the `Async` `toLookup` overloads no longer take a `cancellationToken`; they observe the token of the computation
+- **Breaking:** the `Task` `toArray` and `toList` are curried functions of the `Task.Observable` module taking the token first: `Observable.toArray ct source`
 - **Breaking:** `ofTask` defaults `configureAwait` to `true`, like R3 and `ofAsync`
 - **Breaking:** `ofSeq` moved from the `Observable` type of the `FSharp.Control.R3.Observable.Extensions` module, which is removed, to the `Observable` type of the new `FSharp.Control.R3.ObservableFactories` module; F# code that calls `Observable.ofSeq` compiles unchanged, but code compiled against the old type must be recompiled
 - **Breaking:** the `Observable` types of the `FSharp.Control.R3.Observable.OptionExtensions` and `FSharp.Control.R3.Observable.ValueOptionExtensions` modules, which carried the extension members `choose`, are removed; `Observable.choose` is now a function of the `Observable` module that takes a `voption` chooser, and `ObservableOption.choose` takes an `option` chooser
