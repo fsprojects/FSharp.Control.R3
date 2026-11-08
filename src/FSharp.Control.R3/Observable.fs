@@ -45,6 +45,10 @@ let inline cast<'T, 'CastType> (source) = ObservableExtensions.Cast<'T, 'CastTyp
 /// pass through without reaching the handler.
 /// A handler whose argument type is not annotated handles every exception.
 /// </para>
+/// <para>
+/// In R3 1.3.1, disposing the result after it switched to the sequence of the handler does not unsubscribe from that sequence:
+/// it stays subscribed until it completes by itself, while its elements are no longer delivered.
+/// </para>
 /// </summary>
 let inline catch ([<InlineIfLambda>] f : 'Exn -> Observable<'T>) o = ObservableExtensions.Catch (o, f)
 
